@@ -8,5 +8,9 @@ $p(\cdot)$ represents a marginal distribution and $Pr(\cdot)$ represents the pro
 
 ## Single-Parameter Models
 
+In the simple binomial model, the aim is to estimate an unknown population proportion from the results of a sequence of bernoulli trials. That is $\theta$ represents the proportion of successes in the population, or equivalently, the probability of success in each trial. We have that
 
+$$
+p(y | \theta) = \binom{n}{y}\theta^y(1-\theta)^{n - y}
+$$
 
