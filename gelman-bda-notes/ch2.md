@@ -23,6 +23,6 @@ $$
 With fixed $n$ and $y$ the factor $\binom{n}{y}$ does not depend on the unknown parameter $\theta$ so it can be treated as a constant. Our posterior density can be recognized as being a *beta* distribution.
 
 $$
-\text{Beta}(\alpha | \beta) \propto x^{\alpha - 1}(1-x)^{\beta - 1} \qquad \text{so} \qquad p(\theta | y) \sim \text{Beta}(y + 1, n-y + 1)
+\text{Beta}(\alpha | \beta) \propto x^{\alpha - 1}(1-x)^{\beta - 1} \qquad \text{so} \qquad \theta | y \sim \text{Beta}(y + 1, n-y + 1)
 $$
 
