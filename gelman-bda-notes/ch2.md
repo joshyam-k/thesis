@@ -4,6 +4,9 @@ The central feature of Bayesian inference, the direct quantification of uncertai
 
 Throughout this book $\theta$ denotes unobservable vector quantities or population *parameters* of interest, $y$ denotes the observed data, and $\tilde{y}$ denote the unknown, but potentially observable, quantities.
 
+$p(\cdot)$ represents a marginal distribution and $Pr(\cdot)$ represents the probability of an event.
+
 ## Single-Parameter Models
+
 
 
