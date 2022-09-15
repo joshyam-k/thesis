@@ -14,3 +14,15 @@ $$
 p(y | \theta) = \binom{n}{y}\theta^y(1-\theta)^{n - y}
 $$
 
+To perform Bayesian inference, we must specify a prior distribution for $\theta$. For simplicity at this point, we will assume the prior distribution for $\theta$  is uniform on $[0,1]$. By bayes rule we have that
+
+$$
+p(\theta | y) \propto p(y | \theta)p(\theta) = \theta^y (1- \theta)^{n-y}\cdot \frac{1}{1-0} =  \theta^y (1- \theta)^{n-y}
+$$
+
+With fixed $n$ and $y$ the factor $\binom{n}{y}$ does not depend on the unknown parameter $\theta$ so it can be treated as a constant. Our posterior density can be recognized as being a *beta* distribution.
+
+$$
+\text{Beta}(\alpha | \beta) \propto x^{\alpha - 1}(1-x)^{\beta - 1} \qquad \text{so} \qquad p(\theta | y) \sim \text{Beta}(y + 1, n-y + 1)
+$$
+
