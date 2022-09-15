@@ -58,3 +58,6 @@ $$
 p(\theta | y) \propto \theta^y(1-\theta)^{n-y}\theta^{\alpha - 1}(1-\theta)^{\beta - 1} = \theta^{y + \alpha - 1}(1- \theta)^{n - y + \beta - 1} = \text{Beta}(\alpha + y, n - y + \beta)
 $$
 
+We call this property *conjugacy*, when the posterior distribution follows the same parametric form as the prior distribution. Conjugacy is mathematically convenient in that we know the form of the posterior distribution. (i.e it's easy to understand the results, and the computations are usually simpler). That being said, conjugate priors may not be possible, and the good news is that nonconjugate priors do not pose any new *conceptual* problems.
+
+
