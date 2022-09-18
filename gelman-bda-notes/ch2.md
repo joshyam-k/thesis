@@ -60,4 +60,39 @@ $$
 
 We call this property *conjugacy*, when the posterior distribution follows the same parametric form as the prior distribution. Conjugacy is mathematically convenient in that we know the form of the posterior distribution. (i.e it's easy to understand the results, and the computations are usually simpler). That being said, conjugate priors may not be possible, and the good news is that nonconjugate priors do not pose any new *conceptual* problems.
 
+In general, the posterior density, $p(\theta | y)$ has no closed form expression; the normalizing constant $p(y)$, is often especially difficult to compute. Much formal bayesian analysis concentrates on situations where closed forms are available; such models are sometimes unrealistic, but their analysis often provides a useful starting point when it comes to constructing more realistic models.
+
+
+
+### Exponential Families
+
+Probability distributions that belong to an exponential family have natural conjugate prior distributions. The class F is an exponential family if all of it's members have the form
+
+$$
+p(y_i | \theta) = f(y_i)g(\theta)e^{\phi(\theta)^Tu(y_i)}
+$$
+
+The factors $\phi(\theta)$ and $u(y_i)$ are vectors of equal dimension to that of $\theta$. The likelihood coresponding to a sequence $y = (y_1, ...,y_n)$ is
+
+$$
+p(y | \theta) = \bigg[\prod_{i=1}^n f(y_i)\bigg]g(\theta)^n \text{exp}\bigg(\phi(\theta)^T\sum_{i=1}^nu(y_i)\bigg)
+$$
+
+for all $n$ and $y$, this has a fixed form (as a function of $\theta$):
+
+$$
+p(y | \theta) \propto g(\theta)^ne^{\phi(\tgeta)^Tt(y)} \qquad \text{where} \qquad t(y) = \sum_{i=1}^nu(y_i)
+$$
+
+The quantity $t(y)$ is said to be a sufficient statistic for $\theta$ because the likelihood for $\theta$ depends on the data $y$ only through the value of $t(y)$. If the prior densitty is specified as:
+
+$$
+p(\theta) \propto g(\theta)^{\nu}e^{\phi(\theta)^Tv}
+$$
+
+then the posterior density is
+
+$$
+p(\theta | y) \propto g(\theta)^{\nu + n}e^{\phi(\theta)^T(v + t(y))}
+$$
 
