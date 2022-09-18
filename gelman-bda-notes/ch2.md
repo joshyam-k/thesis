@@ -81,7 +81,7 @@ $$
 for all $n$ and $y$, this has a fixed form (as a function of $\theta$):
 
 $$
-p(y | \theta) \propto g(\theta)^ne^{\phi(\tgeta)^Tt(y)} \qquad \text{where} \qquad t(y) = \sum_{i=1}^nu(y_i)
+p(y | \theta) \propto g(\theta)^ne^{\phi(\theta)^Tt(y)} \qquad \text{where} \qquad t(y) = \sum_{i=1}^nu(y_i)
 $$
 
 The quantity $t(y)$ is said to be a sufficient statistic for $\theta$ because the likelihood for $\theta$ depends on the data $y$ only through the value of $t(y)$. If the prior densitty is specified as:
@@ -95,4 +95,16 @@ then the posterior density is
 $$
 p(\theta | y) \propto g(\theta)^{\nu + n}e^{\phi(\theta)^T(v + t(y))}
 $$
+
+Which shows us that this choice of prior density is conjugate.
+
+### Noninformative prior distributions
+
+When prior distributions have no population basis, they can be difficult to construct, and there has long been a desire for prior distributions that can be guaranteed to play a minimal role in the posterior distribution. The rationale for using noninformative prior distributions is often said to be 'to let the data speak for themselves'. In other words, to minimize the extent to which the inferences are affected by information external to the current data.
+
+There are some notable problems with searching for noninformative prior distributions
+- For many problems, there s no clear choice for a vague prior distribution, since a density that is flat or uniform in one parametrization will not be in another.
+- searching for a prior distribution that is always vague seems misguided. If the likelihood is truly dominant in a given problem, then the choice among a rnage of relatively flat prior densities cannot matter.
+
+
 
