@@ -21,10 +21,10 @@ A sensible noninformative prior for $\mu$ and $\sigma$ is uniform on $(\mu, \log
 Our joint posterior distribution is then:
 
 $$
-\begin{*aligned}
+\begin{aligned}
 p(\mu, \sigma^2 | y) &\propto \sigma^{-n-2}\text{exp}\bigg(-\frac{1}{2\sigma^2}\sum_{i=1}^n(y_i - \mu)^2\bigg) \\
 &= \sigma^{-n-2}\text{exp}\bigg(-\frac{1}{2\sigma^2}[(n-1)s^2 + n(\bar{y} - \mu)^2]\bigg)
-\end{*aligned}
+\end{aligned}
 $$
 
 where 
