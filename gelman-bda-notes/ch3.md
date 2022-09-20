@@ -44,3 +44,5 @@ There is a lot of math done on page 75 that shows that
 $$
 \sigma^2 | y \sim \text{Inv}-\chi^2(n-1, s^2)
 $$
+
+In order to draw samples from the joint posterior distribution we first draw $\sigma^2$ from the inverse chi-squared distribution, and we use that draw to then draw $\mu$ from the normal distribution. Again this is a rare example in that these closed form solutions exist and are not too complex, but it usually is not this easy.
