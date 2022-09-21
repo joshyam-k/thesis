@@ -67,5 +67,23 @@ $$
 
 plugging in values of $y' \in \{0, 1,...,20\}$ yields the probability of observing that value of $Y'$.
 
+## In R
+
+```{r}
+posterior_prob <- function(y_prime){
+  choose(20, y_prime)*gamma(110)/(gamma(18)*gamma(92))*(gamma(18 + y_prime)*gamma(112 - y_prime))/gamma(130)
+}
+
+tibble(
+  outcome = 0:20,
+  posterior_probability = posterior_prob(outcome)
+) %>% 
+  ggplot(aes(x = outcome, y = posterior_probability)) +
+  geom_point() 
+
+
+```
+
+
 
 
