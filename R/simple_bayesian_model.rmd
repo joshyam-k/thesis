@@ -1,0 +1,71 @@
+---
+title: "simple-bayesian-model"
+output: html_document
+date: "2022-09-21"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Set up (Binomial-Beta Model)
+
+Suppose we are interested in estimating $\pi$, a population proportion. Suppose we collect $n$ data points record $Y$ some count of "successes". We wish to estimate the *posterior* distribution $f(\pi | Y)$ and we'll use a binomial likelihood function and a Beta prior to achieve conjugacy. 
+
+$$
+Y | \pi \sim \text{Bin}(n, \pi) \qquad and \qquad \pi \sim \text{Beta}(\alpha, \beta)
+$$
+
+We thus have a posterior distribution that looks like this:
+
+$$
+\begin{aligned}
+f(\pi | Y) &\propto f(Y | \pi)f(\pi) \\
+&= \binom{n}{y}\pi^y(1-\pi)^{n-y} \frac{\Gamma{(\alpha + \beta)}}{\Gamma(\alpha)\Gamma(\beta)}\pi^{\alpha -1}(1-\pi)^{\beta - 1} \\
+&\propto \pi^{y + \alpha - 1}(1-\pi)^{n + \beta - y - 1}
+\end{aligned}
+$$
+
+so we know that $\pi | Y \sim \text{Beta}(\alpha + y, \beta + n - y)$
+
+## Example
+
+Let $n = 100$ and $Y = 14$. We'll choose a relatively noninformative prior:
+
+$$
+Y | \pi \sim \text{Binom}(100, \pi) \qquad and \qquad \pi \sim \text{Beta}(4, 6)
+$$
+
+So our posterior is distributed $\pi | Y = 14 \sim \text{Beta}(18, 92)$
+
+## Prediction
+
+Suppose we observe 20 more "trials" giving us and unknown $Y' = y'$ number of "successes" out of the 20 new trials. Conditioned on $\pi$ the sampling variability in $Y'$ can be modeled by
+
+$$
+f(y' | \pi) = \binom{20}{y'}\pi^{y'}(1- \pi)^{20 - y'}
+$$
+
+in other words, the random outcome of $Y'$ depends on $\pi$ which can also vary. Thus the beta posterior model of $\pi$ given the original data describes the potential posterior variability in $\pi$. Thus we have
+
+$$
+f(y' | \pi)f(\pi | Y = 14)
+$$
+
+and so our posterior predictive model of $Y'$, the number of successes in the 20 new trials, calculates the overall chance of observing $Y' = y'$ across all possible $\pi$ so we have
+
+$$
+f(y' | y = 14) = P(Y' = y' | Y = y) \int_0^1 f(y' | \pi)f(\pi | Y = 14)d\pi
+$$
+
+this integral comes out to be
+
+$$
+f(y' | y = 14) = \binom{20}{y'}\frac{\Gamma(110)}{\Gamma(18)\Gamma(92)}\frac{\Gamma(18 + y')\Gamma(112-y')}{\Gamma(130)}
+$$
+
+plugging in values of $y' \in \{0, 1,...,20\}$ yields the probability of observing that value of $Y'$.
+
+
+
