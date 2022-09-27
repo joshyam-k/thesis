@@ -19,7 +19,7 @@ First we often assume that $\beta_0, \beta_1, \sigma$ are independent this allow
 Since $\beta_0, \beta_1$ can take any value on the real number line their priors should have a non-zero plausibilty across the entire real line. We can assume normal priors for both of these priors
 
 $$
-\beta_0 \sim \mathcal{N}(m_0,s_0^2) \qquad and \qqyad \beta_1 \sim \mathcal{N}(m_1, s_1^2)
+\beta_0 \sim \mathcal{N}(m_0,s_0^2) \qquad and \qquad \beta_1 \sim \mathcal{N}(m_1, s_1^2)
 $$
 
 where we can tune the hyperparameters based on our prior understanding of $\beta_0, \beta_1$
@@ -46,6 +46,17 @@ $$
 f(\beta_0, \beta_1, \sigma | y) \propto \bigg[\prod_{i=1}^nf(y_i |\beta_0, \beta_1, \sigma)\bigg]f(\beta_0)f(\beta_1)f(\sigma)
 $$
 
+If we were to write out the actual form of the distributions and multiply them together we would not discover some familiar structure. Instead we employ MCMC methods to *approimate* the posterior here.
+
+If we have 20,000 runs this means that our MCMC procedure will provide 20,000 posterior plausible pairs of $\beta_0$ and $\beta_1$ values. These pairs capture our overall uncertainty about this relationship.
+
+### Posterior Prediction
+
+At this point we might be tempted to extract the median of the marginal posterior distributions for $\beta_0$ and $\beta_1$ and use these values as the coefficients for our linear models but this ignores two important sources of variability
+- Sampling variability: the observed outcomes $Y$, typically deviate from the model line, thus for a given value of $X_i$ we don't expect to have the same exact predicted outcome value
+- Posterior variability: the posterior median model is simply the the center of the range of plausible values for the parameters.
+
+The **posterior predictive model** for a new data point $Y_{new}$ accounts for both sources of variability.
 
 
 
