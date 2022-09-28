@@ -56,12 +56,26 @@ At this point we might be tempted to extract the median of the marginal posterio
 - Sampling variability: the observed outcomes $Y$, typically deviate from the model line, thus for a given value of $X_i$ we don't expect to have the same exact predicted outcome value
 - Posterior variability: the posterior median model is simply the the center of the range of plausible values for the parameters.
 
-The **posterior predictive model** for a new data point $Y_{new}$ accounts for both sources of variability.
+The **posterior predictive model** for a new data point $Y_{new}$ accounts for both sources of variability. Specifically it weighs the chance of the outcome $Y_{new} = y_{new}$ under any set of possible parameters by the posterior plausability of those parameters:
+
+$$
+f(y_{new} | y) = \int \int \int f(y_{new}| \beta_0, \beta_1, \sigma)f(\beta_0, \beta_1, \sigma | y) d\beta_0 d\beta_1 d\sigma
+$$
 
 
+While we don't have a nice formula for $f(\beta_0, \beta_1, \sigma | y)$ we do have 20,000 sets of the form $(\beta_0^{(i)}, \beta_1^{(i)}, \sigma^{(i)})$ and so we can *approximate* the posterior predictive model for $Y_{new}$ at a given value of $X_i$ by simulating a prediction from normal model evaluated on each parameter set
 
+$$
+Y_{new}^{(i)} | \beta_0, \beta_1, \sigma \sim \mathcal{N}(\mu^{(i)}, (\sigma^{(i)})^2) \qquad where \qquad \mu^{(i)} = \beta_0^{(i)} + \beta_1^{(i)}X_i
+$$
 
+Suppose that for one of our MCMC sets we had $(-5, 20, 100)$ and suppose $X_i = 75$ then we can use the above formula to get that $\mu^{(i)} = -5 + 20*75 = 1495$ and we use this along with $\sigma^{(i)}$ to get our first official prediction $Y_{new}^{(i)}$ by drawing from
 
+$$
+Y_{new}^{(i)} | \beta_0, \beta_1, \sigma \sim \mathcal{N}(1495, 100^2)
+$$
+
+We can then do this 19,999 more times, once for each set from our MCMC and this is what will give us our posterior predictive model for that given $X_i$.
 
 
 
