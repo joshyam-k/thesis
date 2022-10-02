@@ -77,7 +77,7 @@ $$
 
 We can then do this 19,999 more times, once for each set from our MCMC and this is what will give us our posterior predictive model for that given $X_i$.
 
-
+The beauty of this is that we now have a predictive *distribution* and so we can very easily compute things like standard errors and mean squared errors for individual predictions.
 
 
 
