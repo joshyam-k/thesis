@@ -13,7 +13,8 @@ library(broom.mixed)
 sim_dat <- tibble(
   x = rnorm(1000, 50, 9),
   error = rnorm(1000, 0, 36),
-  y = 150 + 4*x + error
+  y = 150 + 4*x + error,
+  group = rep(c(1,2,3,4,5), 200)
 )
 
 sim_dat %>% 
@@ -29,23 +30,50 @@ model <- stan_glm(y ~ x, data = sim_dat,
 
 
 tidy(model, effects = c("fixed", "aux"),
-     conf.int = TRUE, conf.level = 0.80)
+     conf.int = TRUE, conf.level = 0.90)
 
 model_df <- as.data.frame(model)
 
 # Predict rides for each parameter set in the chain
-# when x is 70
-set.seed(84735)
-predict_70 <- model_df %>% 
-  mutate(mu = `(Intercept)` + x*70,
-         y_new = rnorm(20000, mean = mu, sd = sigma))
+# on a new set of data
+
+set.seed(10)
+x_new <- runif(50, 30, 75)
+
+res_list <- list()
+means <- c()
+
+for(i in 1:length(x_new)){
+  curr <- model_df %>% 
+    mutate(newd = x_new[i]) %>% 
+    mutate(mu = `(Intercept)` + x*70) %>% 
+    rowwise() %>% 
+    mutate(y_new = rnorm(1, mean = mu, sd = sigma)) %>% 
+    ungroup()
+  
+  res_list[[i]] <- curr
+  m_i <- mean(curr$y_new)
+  means <- c(means, m_i)
+  
+}
+
+# from here we can get single point predictions
+
+res_list[[1]] %>% 
+  summarise(y_pred = mean(y_new))
 
 
-ggplot(predict_70, aes(x = y_new)) + 
+# predictive distribution of an average?
+# average over the group (does the average over the runs then give you a point estimate prediction of the group level mean)
+data.frame(
+  m = means
+) %>% 
+  ggplot(aes(x = m)) +
   geom_density()
 
-## now for a set of new data
+# compare to this
 
-x_new = runif(100, 30, 75)
-
+res_list[[1]] %>% 
+  ggplot(aes(x = y_new)) +
+  geom_density()
 
