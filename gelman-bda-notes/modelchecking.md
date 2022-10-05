@@ -8,3 +8,5 @@ Bayes Rules! describes how to do this in more detail, essentially you
 - if we had 500 data points this would give us 500 different predictions for each parameter set
 - we could plot this posterior predictive distribution alongside the actual distribution (since we predicted on observed data) to do a posterior predictive check
 - in other words, if our assumptions are correct, our posterior predictive model should be able to simulate data thats similar the observed response data
+
+Gelman goes into much more detail about other ways that you can do posterior predictive checking by looking at various quantiles.
