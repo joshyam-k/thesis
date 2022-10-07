@@ -70,18 +70,11 @@ for (t in 1:500){
 DGP_s2 <- function(n){
   
   X <- rnorm(n, 50, 9)
-  beta <- rnorm(n, 10, 4)
-  sigma <- rnorm(n, 200, 30)
-  
-  # there's probably a simpler way to do this but its sufficiently fast 
-  eps <- tibble(
-    sigma
-  ) %>% 
-    rowwise() %>% 
-    mutate(eps = rnorm(1, 0, sigma)) %>% 
-    ungroup() %>% 
-    pull(eps)
-  
+  beta <- rnorm(10, 4)
+  sig_mean <- sqrt(2)*sd(X*beta)
+  sigma <- rnorm(1, sig_mean, 30)
+  eps <- rnorm(n, 0, sigma)
+    
   Y <- X*beta + eps
   
   return(tibble(X, Y))
@@ -149,7 +142,7 @@ DGP_s3 <- function(n){
   # number of groups
   g <- 50  
   # number of observations per group
-  m <- n/10
+  m <- n/g
   # group number for data
   group <- rep(seq(1, g), m) 
   gamma <- rnorm(g, 0, 36) 
@@ -229,7 +222,7 @@ coverage <- function(df){
 }
 
 # usage
-coverage(covers_s1)
+coverage(covers_s2)
 
 
 
