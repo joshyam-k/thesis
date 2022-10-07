@@ -65,9 +65,9 @@ for (t in 1:250){
 ## Setting 2
 DGP_s2 <- function(n){
   
-  X <- rnorm(1000, 50, 9)
-  beta <- rnorm(1000, 10, 4)
-  sigma <- rnorm(1000, 200, 30)
+  X <- rnorm(n, 50, 9)
+  beta <- rnorm(n, 10, 4)
+  sigma <- rnorm(n, 200, 30)
   
   # there's probably a simpler way to do this but its sufficiently fast 
   eps <- tibble(
