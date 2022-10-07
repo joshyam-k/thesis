@@ -63,8 +63,6 @@ for (t in 1:250){
 
 
 ## Setting 2
-
-
 DGP_s2 <- function(n){
   
   X <- rnorm(1000, 50, 9)
@@ -137,6 +135,18 @@ for (t in 1:250){
 
 
 
+## Setting 3
+DGP_s3 <- function(n){
+  
+  X <- rnorm(n, 50, 9)
+  beta <- 4
+  gamma <- rnorm(n, 0, 200)
+  eps <- sqrt(2)*sd(X*beta)*rnorm(n, 0, 1)
+  Y <- X*beta + gamma + eps
+  
+  return(tibble(X, Y))
+  
+}
 
 
 
