@@ -64,6 +64,8 @@ for (t in 1:500){
 }
 
 
+
+
 ## Setting 2
 DGP_s2 <- function(n){
   
@@ -88,7 +90,7 @@ DGP_s2 <- function(n){
 
 
 covers_s2 <- data.frame()
-for (t in 1:250){
+for (t in 1:500){
   s2_original <- DGP_s2(1000)
   
   model <- stan_glm(Y ~ X, data = s2_original,
@@ -175,6 +177,10 @@ for (t in 1:500){
   
   # set to 500 so we get 50 obs in group 1
   s3_new <- DGP_s3(500)
+  
+  s3_new <- s3_new %>% 
+    filter(group == 1)
+    
   model_df <- as.data.frame(model)
   
   full_preds <- data.frame()
@@ -198,7 +204,7 @@ for (t in 1:500){
   q <- quantile(full_preds_means$pred, probs = c(0.025, 0.975))
   
   to_add <- tibble(
-    true = mean(s2_new$Y),
+    true = mean(s3_new$Y),
     lower = q[1],
     upper = q[2]
   )
@@ -223,7 +229,7 @@ coverage <- function(df){
 }
 
 # usage
-coverage(covers_s2)
+coverage(covers_s1)
 
 
 
