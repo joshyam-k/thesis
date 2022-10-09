@@ -18,7 +18,7 @@ DGP_s1 <- function(n){
 
 
 covers_s1 <- data.frame()
-for (t in 1:500){
+for (t in 1:50){
   s1_original <- DGP_s1(1000)
   
   model <- stan_glm(Y ~ X, data = s1_original,
@@ -70,9 +70,8 @@ for (t in 1:500){
 DGP_s2 <- function(n){
   
   X <- rnorm(n, 50, 9)
-  beta <- rnorm(10, 4)
-  sig_mean <- sqrt(2)*sd(X*beta)
-  sigma <- rnorm(1, sig_mean, 30)
+  beta <- rnorm(1, 10, 1)
+  sigma <- rnorm(1, 160, 16)
   eps <- rnorm(n, 0, sigma)
     
   Y <- X*beta + eps
@@ -81,14 +80,20 @@ DGP_s2 <- function(n){
   
 }
 
+DGP_s2(1000) %>% 
+  ggplot(aes(X, Y)) +
+  geom_point()
+
+
+
 
 covers_s2 <- data.frame()
-for (t in 1:500){
+for (t in 1:50){
   s2_original <- DGP_s2(1000)
   
   model <- stan_glm(Y ~ X, data = s2_original,
                     family = gaussian,
-                    prior_intercept = normal(500, 60),
+                    prior_intercept = normal(200, 60),
                     prior = normal(10, 20), 
                     prior_aux = exponential(0.002),
                     chains = 4, iter = 5000*2, seed = 84735)
@@ -127,6 +132,7 @@ for (t in 1:500){
   print(paste0("done with trial ", t))
   
 }
+
 
 
 
