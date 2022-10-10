@@ -80,31 +80,29 @@ DGP_s2 <- function(n){
   
 }
 
-DGP_s2(1000) %>% 
-  ggplot(aes(X, Y)) +
-  geom_point()
 
 
 
 
 covers_s2 <- data.frame()
-for (t in 1:50){
-  s2_original <- DGP_s2(1000)
+for (t in 1:500){
+  s2_full <- DGP_s2(1050)
+  s2_build <- s2_full %>% head(1000)
   
-  model <- stan_glm(Y ~ X, data = s2_original,
+  model <- stan_glm(Y ~ X, data = s2_build,
                     family = gaussian,
                     prior_intercept = normal(200, 60),
                     prior = normal(10, 20), 
                     prior_aux = exponential(0.002),
                     chains = 4, iter = 5000*2, seed = 84735)
   
-  s2_new <- DGP_s2(50)
+  s2_test <- s2_full %>% tail(50)
   model_df <- as.data.frame(model)
   
   full_preds <- data.frame()
-  for(i in 1:nrow(s2_new)){
+  for(i in 1:nrow(s2_test)){
     curr <- model_df %>% 
-      mutate(newd = s2_new$X[i]) %>% 
+      mutate(newd = s2_test$X[i]) %>% 
       mutate(mu = `(Intercept)` + X*newd) %>% 
       rowwise() %>% 
       mutate(y_new = rnorm(1, mean = mu, sd = sigma)) %>% 
@@ -122,7 +120,7 @@ for (t in 1:50){
   q <- quantile(full_preds_means$pred, probs = c(0.025, 0.975))
   
   to_add <- tibble(
-    true = mean(s2_new$Y),
+    true = mean(s2_test$Y),
     lower = q[1],
     upper = q[2]
   )
@@ -165,7 +163,8 @@ covers_s3 <- data.frame()
 
 
 for (t in 1:500){
-  s3_original <- DGP_s3(10000)
+  s3_full <- DGP_s3(10500)
+  s3_build %>% s3_full %>% head(10000)
   
   model <- stan_glm(Y ~ X, data = s3_original,
                     family = gaussian,
@@ -175,17 +174,15 @@ for (t in 1:500){
                     chains = 4, iter = 5000*2, seed = 84735)
   
   # set to 500 so we get 50 obs in group 1
-  s3_new <- DGP_s3(500)
-  
-  s3_new <- s3_new %>% 
+  s3_test <- s3_full %>% tail(500) %>% 
     filter(group == 1)
     
   model_df <- as.data.frame(model)
   
   full_preds <- data.frame()
-  for(i in 1:nrow(s3_new)){
+  for(i in 1:nrow(s3_test)){
     curr <- model_df %>% 
-      mutate(newd = s3_new$X[i]) %>% 
+      mutate(newd = s3_test$X[i]) %>% 
       mutate(mu = `(Intercept)` + X*newd) %>% 
       rowwise() %>% 
       mutate(y_new = rnorm(1, mean = mu, sd = sigma)) %>% 
@@ -203,7 +200,7 @@ for (t in 1:500){
   q <- quantile(full_preds_means$pred, probs = c(0.025, 0.975))
   
   to_add <- tibble(
-    true = mean(s3_new$Y),
+    true = mean(s3_test$Y),
     lower = q[1],
     upper = q[2]
   )
