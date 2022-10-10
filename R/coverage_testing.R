@@ -159,14 +159,15 @@ DGP_s3 <- function(n){
 }
 
 
-covers_s3 <- data.frame()
 
+
+covers_s3 <- data.frame()
 
 for (t in 1:500){
   s3_full <- DGP_s3(10500)
-  s3_build %>% s3_full %>% head(10000)
+  s3_build <- s3_full %>% head(10000)
   
-  model <- stan_glm(Y ~ X, data = s3_original,
+  model <- stan_glm(Y ~ X, data = s3_build,
                     family = gaussian,
                     prior_intercept = normal(200, 60),
                     prior = normal(4, 16), 
@@ -212,9 +213,6 @@ for (t in 1:500){
 }
 
 
-
-
-
 # helper function to extract coverage stat
 coverage <- function(df){
   df %>% 
@@ -224,8 +222,7 @@ coverage <- function(df){
     summarise(coverage = mean(falls_in))
 }
 
-# usage
-coverage(covers_s2)
+
 
 
 
