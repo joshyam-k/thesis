@@ -271,6 +271,8 @@ for(t in 1:50){
 
 }
 
+write_csv(covers_s4, "~/Desktop/thesis/data/covers_s4.csv")
+
 
 
 
