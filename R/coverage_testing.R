@@ -18,13 +18,13 @@ DGP_s1 <- function(n){
 
 
 covers_s1 <- data.frame()
-for (t in 1:50){
-  s1_original <- DGP_s1(1000)
+for (t in 1:20){
+  s1_original <- DGP_s1(100)
   
   model <- stan_glm(Y ~ X, data = s1_original,
                     family = gaussian,
-                    prior_intercept = normal(200, 60),
-                    prior = normal(5, 20), 
+                    prior_intercept = normal(200, 40),
+                    prior = normal(5, 2), 
                     prior_aux = exponential(0.02),
                     chains = 4, iter = 5000*2, seed = 84735)
   
@@ -79,6 +79,8 @@ DGP_s2 <- function(n){
   return(tibble(X, Y))
   
 }
+
+
 
 
 
@@ -159,11 +161,9 @@ DGP_s3 <- function(n){
 }
 
 
-
-
 covers_s3 <- data.frame()
 
-for (t in 1:500){
+for (t in 1:100){
   s3_full <- DGP_s3(10500)
   s3_build <- s3_full %>% head(10000)
   
@@ -270,20 +270,4 @@ for(t in 1:50){
  
 
 }
-
-
-
-
-# helper function to extract coverage stat
-coverage <- function(df){
-  df %>% 
-    rowwise() %>% 
-    mutate(falls_in = between(true, lower, upper)) %>% 
-    ungroup() %>% 
-    summarise(coverage = mean(falls_in))
-}
-
-
-
-
 
