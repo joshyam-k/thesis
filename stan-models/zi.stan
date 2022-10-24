@@ -8,25 +8,18 @@ data {
 }
 parameters {
   vector[p] beta;
-  vector[j] u; //vector of random effects
   real<lower = 0> sigma_u; // random effect sd
   real<lower = 0> sigma_e; // error sd
+  vector[j] u;
+}
+transformed parameters {
+  vector[n] mu;
+  for (i in 1:n)
+    mu[i] = u[rfid[i]] + x[i]*beta; //
 }
 model {
-  for(grp in 1:j){
-    u[grp] ~ normal();
-  }
-  
-  for(i in 1:n){
-    y[i] ~ normal(x[i]*beta + u[], sigma_e);
-  }
+  u ~ normal(0, sigma_u);
+  y ~ normal(mu, sigma_e);
 }
 
-// eventually will want to use something like
-/*
-for (i in 1:n) {
-    z[i] ~ bernoulli_logit();
-    y[i] ~ normal(z[i]*(beta_0 + u[j] + beta_1 * x[i]), sigma);
-  }
-*/
 
