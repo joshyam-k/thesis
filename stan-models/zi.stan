@@ -22,3 +22,11 @@ model {
   }
 }
 
+// eventually will want to use something like
+/*
+for (i in 1:n) {
+    z[i] ~ bernoulli_logit();
+    y[i] ~ normal(z[i]*(beta_0 + u[j] + beta_1 * x[i]), sigma);
+  }
+*/
+
