@@ -1,11 +1,13 @@
+
 data {
+  // descriptions of the data that we will supply
   int<lower = 0> n; // number of data points
   int<lower = 1> p; // number of predictors
   int<lower = 1> j; // number of random effects
   int<lower = 1, upper = j> rfid[n]; // random effect id vector
-  matrix[n, p] x; // predictor matrix
-  vector[n] y; // outcome vector
-  int pr[n]; // log reg outcome vector
+  matrix[n, p] x; // predictor matrix that will include one column of all 1s for the intercept term
+  vector[n] y; // outcome vector for normal model
+  int pr[n]; // logistic model outcome vector
   real<lower = 0> tau2; // error sd for logistic model (set to a small number)
 }
 parameters {
