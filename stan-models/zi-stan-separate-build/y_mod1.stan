@@ -15,9 +15,9 @@ parameters {
 model {
   vector[n] mu;
   
-  //priors
-  u ~ normal(0, sigma_u);
-
+  //priors go here
+  u ~ normal(0, 2.5);
+  
   mu = x*beta + u[rfid];
   y ~ normal(mu, sigma_e);  // likelihood
 }

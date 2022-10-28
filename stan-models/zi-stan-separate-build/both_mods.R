@@ -33,12 +33,14 @@ stan_list_mod2 <- list(
 fit_y_mod <- stan(file = "stan-models/zi-stan-separate-build/y_mod1.stan",
                data = stan_list_mod1,
                cores = parallel::detectCores(),
+               iter = 10000,
                chains = 4)
 
 
 fit_p_mod <- stan(file = "stan-models/zi-stan-separate-build/p_mod2.stan",
                   data = stan_list_mod2,
                   cores = parallel::detectCores(),
+                  iter = 10000,
                   chains = 4)
 
 

@@ -14,9 +14,8 @@ parameters {
 model {
   vector[n] mu;
   
-  //priors
-  v ~ normal(0, tau_u);
-  
+  //priors go here
+
   mu = x*gamma + v[rfid];
   z ~ bernoulli_logit(mu);
 }
