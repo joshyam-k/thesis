@@ -1,0 +1,33 @@
+---
+title: "explaining hierarchical 2 part model"
+format: html
+editor: visual
+---
+
+Load in the packages and data first
+
+```{r}
+library(rstanarm)
+library(tidyverse)
+library(here)
+
+dat_raw <- read_rds(here("data", "wa_plots_public.rds"))
+```
+
+
+Do some data processing
+
+```{r}
+dat <- dat_raw %>% 
+  # select our predictor, response, and group variables
+  select(tcc, DRYBIO_AG_TPA_live_ADJ, COUNTYCD) %>% 
+  # reindex the group variable to be sequantial 1...(# of county codes)
+  group_by(COUNTYCD) %>% 
+  mutate(group_id = cur_group_id()) %>% 
+  ungroup() %>% 
+  # create response variable for logistic regression model
+  mutate(DRYBIO_AG_INDICATOR = ifelse(DRYBIO_AG_TPA_live_ADJ > 0, 1, 0))
+```
+
+
+

@@ -6,11 +6,13 @@ dat_raw <- read_rds(here("data", "wa_plots_public.rds"))
 
 dat <- dat_raw %>% 
   select(tcc, tnt, DRYBIO_AG_TPA_live_ADJ, COUNTYCD) %>% 
-  mutate(group_id = group_indices(., COUNTYCD)) %>% 
+  group_by(COUNTYCD) %>% 
+  mutate(group_id = cur_group_id()) %>% 
+  ungroup() %>% 
   mutate(DRYBIO_AG_INDICATOR = ifelse(DRYBIO_AG_TPA_live_ADJ > 0, 1, 0))
 
 mod_y <- stan_glmer(
-  DRYBIO_AG_TPA_live_ADJ ~ tcc + tnt + (1 | group_id), 
+  DRYBIO_AG_TPA_live_ADJ ~ tcc + (1 | group_id), 
   data = dat, family = gaussian,
   prior_intercept = normal(100, 10),
   prior = normal(2.5, 1), 
