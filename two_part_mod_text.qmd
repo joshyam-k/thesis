@@ -51,7 +51,58 @@ Because of the grouped structure of the data it makes sense to fit each of these
 
 We now walk through how to do this in a bayesian frame:
 
-```{r}
+## Model Layers for model 1
 
+#### Variability within a county j
+
+$y_{ij}\ | \ u_j , \beta, \sigma_y \sim \mathcal{N}(\mu_{ij}, \sigma_y^2)$ where $\mu_{ij} = u_j + \beta X_{ij}$
+
+Here we have
+- $u_j$ represents the intercept of the regression model for county $j$
+- $\beta$ the global slope coefficient
+- $\sigma_y$ within county variability parameter
+
+That all need to be estimated
+
+#### Variability between counties j
+
+$u_j \ | \ \beta_0, \sigma_u \sim \mathcal{N}(\beta_0, \sigma_u^2)$ 
+
+Here we have
+- $\beta_0$ represents the global average intercept across all counties
+- $\sigma_u$ represents the between group variability in intercepts $u_j$
+
+#### Global Priors
+
+We set proper priors on $\beta_0, \beta, \sigma_u, \sigma_y$ as the final level in the model.
+
+## Building Model 1
+
+```{r}
+dat_y_mod <- dat %>% 
+  filter(DRYBIO_AG_TPA_live_ADJ > 0)
+```
+
+We can use the data to choose our priors
+
+Our global slope $\beta$ which could be set as 
+
+```{r}
+dat_y_mod %>% 
+  ggplot(aes(x = tcc, y = DRYBIO_AG_TPA_live_ADJ, group = as.factor(group_id))) +
+  geom_smooth(method = "lm", se = F)
+```
+
+
+```{r}
+mod_y <- stan_glmer(
+  DRYBIO_AG_TPA_live_ADJ ~ tcc + (1 | group_id), 
+  data = dat, family = gaussian,
+  prior_intercept = normal(100, 10),
+  prior = normal(2.5, 1), 
+  prior_aux = exponential(1, autoscale = TRUE),
+  prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
+  chains = 4, iter = 5000*2, seed = 84735
+)
 ```
 
