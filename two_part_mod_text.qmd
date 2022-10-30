@@ -4,6 +4,8 @@ format: html
 editor: visual
 ---
 
+## Set-Up
+
 Load in the packages and data first
 
 ```{r}
@@ -30,4 +32,26 @@ dat <- dat_raw %>%
 ```
 
 
+## The Two Part Model
+
+Let $y$ represent the response variable and $X$ and $U$ represent the covariates and random effects respectively. In the setting where our response variable is substantially zero we can use the law of total expectation and condition on whether that response variable is zero or nonzero
+
+$$
+\begin{aligned}
+E[y \ | \ X, \ U] &=  E[y \ | X, \ U, \  y = 0]P(y = 0 \ | \ X, \ U)  \\
+& \ \ \ \ \ + E[y \ | X, \ U, \ y > 0]P(y>0 \ | X, \ U) \\
+&= 0 \cdot P(y = 0 \ | \ X, \ U) + E[y \ | X, \ U, \ y > 0]P(y>0 \ | X, \ U) \\
+&= E[y \ | X, \ U, \ y > 0]P(y>0 \ | X, \ U)
+\end{aligned}
+$$
+
+This provides motivation for modeling this type of data using a two-part model. A linear one built on the nonzero portion of our response, and a logistic regression model predicting whether our response variable is nonzero.
+
+Because of the grouped structure of the data it makes sense to fit each of these using a hierarchical model with varying slopes.
+
+We now walk through how to do this in a bayesian frame:
+
+```{r}
+
+```
 
