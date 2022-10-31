@@ -97,7 +97,7 @@ dat_y_mod %>%
 ```{r}
 mod_y <- stan_glmer(
   DRYBIO_AG_TPA_live_ADJ ~ tcc + (1 | group_id), 
-  data = dat, family = gaussian,
+  data = dat_y_mod, family = gaussian,
   prior_intercept = normal(100, 10),
   prior = normal(2.5, 1), 
   prior_aux = exponential(1, autoscale = TRUE),

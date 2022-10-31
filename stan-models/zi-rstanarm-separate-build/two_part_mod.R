@@ -11,23 +11,28 @@ dat <- dat_raw %>%
   ungroup() %>% 
   mutate(DRYBIO_AG_INDICATOR = ifelse(DRYBIO_AG_TPA_live_ADJ > 0, 1, 0))
 
+dat_y_mod <- dat %>% 
+  filter(DRYBIO_AG_TPA_live_ADJ > 0)
+
 mod_y <- stan_glmer(
   DRYBIO_AG_TPA_live_ADJ ~ tcc + (1 | group_id), 
-  data = dat, family = gaussian,
-  prior_intercept = normal(100, 10),
-  prior = normal(2.5, 1), 
+  data = dat_y_mod, family = gaussian,
+  prior_intercept = normal(100, 100),
+  prior = normal(2.5, 100), 
   prior_aux = exponential(1, autoscale = TRUE),
   prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
-  chains = 4, iter = 5000*2, seed = 84735
+  chains = 4, iter = 5000*2, seed = 84735,
+  cores = parallel::detectCores()
 )
 
 mod_p <- stan_glmer(
-  DRYBIO_AG_INDICATOR ~ tcc + tnt + (1 | group_id), 
+  DRYBIO_AG_INDICATOR ~ tcc + (1 | group_id), 
   data = dat, family = binomial,
   prior_intercept = normal(0, 2.5, autoscale = TRUE),
   prior = normal(0, 2.5, autoscale = TRUE), 
   prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
-  chains = 4, iter = 5000*2, seed = 84735
+  chains = 4, iter = 5000*2, seed = 84735,
+  cores = parallel::detectCores()
 )
 
 
