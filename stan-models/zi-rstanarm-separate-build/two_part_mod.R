@@ -12,33 +12,58 @@ dat <- dat_raw %>%
   mutate(DRYBIO_AG_INDICATOR = ifelse(DRYBIO_AG_TPA_live_ADJ > 0, 1, 0))
 
 
-dat %>% 
-  ggplot(aes(x = tcc, y = DRYBIO_AG_TPA_live_ADJ)) +
-  geom_point()
+
 
 dat_y_mod <- dat %>% 
   filter(DRYBIO_AG_TPA_live_ADJ > 0)
 
-mod_y <- stan_glmer(
-  DRYBIO_AG_TPA_live_ADJ ~ tcc + tnt + (1 | group_id), 
-  data = dat_y_mod, family = gaussian,
-  prior_intercept = normal(100, 100),
-  prior = normal(2.5, 100), 
-  prior_aux = exponential(1, autoscale = TRUE),
-  prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
-  chains = 4, iter = 5000*2, seed = 84735,
-  cores = parallel::detectCores()
-)
 
-mod_p <- stan_glmer(
-  DRYBIO_AG_INDICATOR ~ tcc + tnt + (1 | group_id), 
-  data = dat, family = binomial,
-  prior_intercept = normal(0, 2.5, autoscale = TRUE),
-  prior = normal(0, 2.5, autoscale = TRUE), 
-  prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
-  chains = 4, iter = 5000*2, seed = 84735,
-  cores = parallel::detectCores()
-)
+zi_bayesian_mvp <- function(data_full, formula) {
+  
+  y <- formula[[2]]
+  qy <- enquo(y)
+  
+  data_nz <- data_full %>% 
+    filter(!!qy > 0)
+  
+  # model layers
+  # y_ij | beta, u_j, sigma_y ~ N(mu_ij, sigma_y^2) where mu_ij = X_ij(beta) + u_j
+  # u_j ~ N(beta_0, sigma_u^2)
+  # beta_0, beta ~ normal
+  # sigma_u, sigma_y ~ exponential
+  
+  
+  mod_y <- stan_glmer(
+    formula,
+    data = data_nz, family = gaussian,
+    prior_intercept = normal(100, 100),
+    prior = normal(2.5, 100),
+    prior_aux = exponential(1, autoscale = TRUE),
+    prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
+    chains = 4, iter = 5000*2, seed = 84735,
+    cores = parallel::detectCores()
+  )
+
+  mod_p <- stan_glmer(
+    formula,
+    data = data_full, family = binomial,
+    prior_intercept = normal(0, 2.5, autoscale = TRUE),
+    prior = normal(0, 2.5, autoscale = TRUE),
+    prior_covariance = decov(reg = 1, conc = 1, shape = 1, scale = 1),
+    chains = 4, iter = 5000*2, seed = 84735,
+    cores = parallel::detectCores()
+  )
+  
+  res_p <- as.data.frame(mod_p)
+  res_y <- as.data.frame(mod_y)
+  
+  list(model_p = res_p, model_y = res_y)
+  
+}
+
+zi_bayesian_mvp(data_full = dat, formula = DRYBIO_AG_TPA_live_ADJ ~ tcc + tnt + (1 | group_id))
+
+
 
 
 res_p <- as.data.frame(mod_p)
@@ -73,7 +98,10 @@ prediction <- function(new_x, group, df_p, df_y) {
       ) 
 }
 
-prediction(10, 20, res_p, res_y) %>% 
+test <- prediction(10, 20, res_p, res_y) 
+
+
+test %>% 
   ggplot(aes(x = y_final)) +
   geom_density()
 
