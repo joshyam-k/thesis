@@ -18,9 +18,9 @@ dat_y_mod <- dat %>%
   filter(DRYBIO_AG_TPA_live_ADJ > 0)
 
 
-zi_bayesian_mvp <- function(data_full, formula) {
+zi_bayesian_mvp <- function(data_full, formula1, formula2) {
   
-  y <- formula[[2]]
+  y <- formula1[[2]]
   qy <- enquo(y)
   
   data_nz <- data_full %>% 
@@ -34,7 +34,7 @@ zi_bayesian_mvp <- function(data_full, formula) {
   
   
   mod_y <- stan_glmer(
-    formula,
+    formula1,
     data = data_nz, family = gaussian,
     prior_intercept = normal(100, 100),
     prior = normal(2.5, 100),
@@ -45,7 +45,7 @@ zi_bayesian_mvp <- function(data_full, formula) {
   )
 
   mod_p <- stan_glmer(
-    formula,
+    formula2,
     data = data_full, family = binomial,
     prior_intercept = normal(0, 2.5, autoscale = TRUE),
     prior = normal(0, 2.5, autoscale = TRUE),
@@ -61,7 +61,11 @@ zi_bayesian_mvp <- function(data_full, formula) {
   
 }
 
-zi_bayesian_mvp(data_full = dat, formula = DRYBIO_AG_TPA_live_ADJ ~ tcc + tnt + (1 | group_id))
+zi_bayesian_mvp(
+  data_full = dat,
+  formula1 = DRYBIO_AG_TPA_live_ADJ ~ tcc + tnt + (1 | group_id),
+  formula2 = DRYBIO_AG_INDICATOR ~ tcc + tnt + (1 | group_id)
+  )
 
 
 
