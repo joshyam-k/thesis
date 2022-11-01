@@ -12,8 +12,6 @@ dat <- dat_raw %>%
   mutate(DRYBIO_AG_INDICATOR = ifelse(DRYBIO_AG_TPA_live_ADJ > 0, 1, 0))
 
 
-
-
 dat_y_mod <- dat %>% 
   filter(DRYBIO_AG_TPA_live_ADJ > 0)
 
@@ -63,8 +61,8 @@ zi_bayesian_mvp <- function(data_full, formula1, formula2) {
 
 zi_bayesian_mvp(
   data_full = dat,
-  formula1 = DRYBIO_AG_TPA_live_ADJ ~ tcc + tnt + (1 | group_id),
-  formula2 = DRYBIO_AG_INDICATOR ~ tcc + tnt + (1 | group_id)
+  formula1 = DRYBIO_AG_TPA_live_ADJ ~ tcc + (1 | group_id),
+  formula2 = DRYBIO_AG_INDICATOR ~ tcc + (1 | group_id)
   )
 
 

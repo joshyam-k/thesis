@@ -1,24 +1,35 @@
 data {
   int<lower=0> n;   // number of data items
   int<lower=1> p;   // number of predictors
-  int<lower = 1> j; // number of random effects
+  int<lower = 1> j; // number of areas of interest
   int<lower = 1, upper = j> rfid[n]; // random effect id vector
-  matrix[n, p] x;   // predictor matrix
+  matrix[n, p + 1] x;   // predictor matrix (need to include a column for the intercept term)
   vector[n] y;      // outcome vector
 }
 parameters {
-  vector[p] beta;       // coefficients for predictors
-  real<lower=0> sigma_e;  // model error sd
+  vector[p + 1] beta;       // coefficients for predictors
+  real<lower = 0> sigma_e;  // model error sd
   real<lower = 0> sigma_u; // random effect sd
   vector[j] u; // rf vector
 }
 model {
   vector[n] mu;
+  // hyper priors
+  sigma_e ~ exponential(1);
+  sigma_u ~ exponential(1);
   
-  //priors go here
+  // adding priors to fixed effects
+  for(i in 1:(p + 1)){
+    beta[i] ~ normal(0, 10000);
+  }
   
+  // model building
+  for(grp in 1:j){
+    u[grp] ~ normal(0, sigma_u);
+  }
   
-  // u ~ normal(0, sigma_u);
+  // vectorized since x, mu, and rfid all are of length n
   mu = x*beta + u[rfid];
-  y ~ normal(mu, sigma_e);  // likelihood
+  y ~ normal(mu, sigma_e);  
+  
 }
