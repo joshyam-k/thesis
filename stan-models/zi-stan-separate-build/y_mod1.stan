@@ -28,7 +28,13 @@ model {
     u[grp] ~ normal(0, sigma_u);
   }
   
-  // vectorized since x, mu, and rfid all are of length n
+  // vectorized since
+  // x is a n x (p + 1) matrix and beta is a (p + 1) vector
+  // so x*beta gives a n-vector of predictions
+  // next, rfid is an n-vector  
+  // taking u[rfid] returns an n-vector where each entry
+  // is the random effect associated with that data point 
+  
   mu = x*beta + u[rfid];
   y ~ normal(mu, sigma_e);  
   

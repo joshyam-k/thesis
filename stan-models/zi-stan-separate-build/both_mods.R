@@ -1,7 +1,7 @@
 library(rstan)
 library(tidyverse)
 library(here)
-# options(mc.cores = parallel::detectCores())
+options(mc.cores = parallel::detectCores())
 
 # data processing --------------------------------------------------------------
 
@@ -109,8 +109,10 @@ full_mcmc <- cbind(y_mcmc, p_mcmc)
 posterior_pred_dist <- full_mcmc %>% 
   mutate(
     mu = fixed_beta_0 + fixed_beta_1*new_tcc + fixed_beta_2*new_tnt + u,
+    
     pr = exp(fixed_gamma_0 + fixed_gamma_1*new_tcc + fixed_gamma_2*new_tnt + v)/
       (1 + exp(fixed_gamma_0 + fixed_gamma_1*new_tcc + fixed_gamma_2*new_tnt + v))
+    
   ) %>% 
   mutate(
     # R does this rowwise for us!
@@ -132,6 +134,9 @@ posterior_pred_dist %>%
   theme(
     axis.title = element_text(size = 12)
   ) 
+
+posterior_pred_dist$y_final %>% mean()
+
 
 
 
