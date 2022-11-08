@@ -9,12 +9,12 @@ parameters {
   real<lower = 0> alpha;       // shape parameter
 }
 model {
-  vector[n] mu;
   alpha ~ gamma(0.01, 0.01);
   
   for(i in 1:(p + 1)){
     betas[i] ~ cauchy(0, 10);
   }
-  mu = exp(x*betas);
-  y ~ gamma(alpha, mu/alpha);
+  
+  for(i in 1:n)
+    y[i] ~ gamma(alpha, (alpha / exp(x[i] * betas))); 
 }

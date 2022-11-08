@@ -51,7 +51,7 @@ y_mcmc %>%
   ) %>% 
   mutate(
     # R does this rowwise for us!
-    y_hat = rgamma(2000, shape = alpha, rate = mu)
+    y_hat = rgamma(2000, shape = alpha, rate = alpha/mu)
   ) %>% 
   ggplot(aes(x = y_hat)) +
   geom_density()
