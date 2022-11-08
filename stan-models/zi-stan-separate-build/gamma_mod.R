@@ -34,3 +34,16 @@ fit_gamma <- stan(file = "stan-models/zi-stan-separate-build/y_mod_gamma.stan",
                   cores = parallel::detectCores(),
                   iter = 10000,
                   chains = 4)
+
+ext_gamma <- rstan::extract(fit_gamma)
+
+
+y_mcmc <- data.frame(
+  fixed_beta_0 = ext_gamma$beta[ ,1],
+  fixed_beta_1 = ext_gamma$beta[ ,2],
+  fixed_beta_2 = ext_gamma$beta[ ,3],
+  shape = ext_gamma$alpha
+)
+
+
+

@@ -8,25 +8,19 @@ data {
 }
 parameters {
   vector[p + 1] betas;       // coefficients for predictors
-  real<lower = 0> phi;  // variance parameter
-  real<lower = 0> sigma_u; // random effect sd
-  vector[j] u;
+  real<lower = 0> alpha;       // shape parameter
+  // real<lower = 0> sigma_u; // random effect sd
+  // vector[j] u; 
+}
+transformed parameters {
+  vector[n] mu;
+  mu = exp(x*betas);
 }
 model {
-  vector[n] mu;
-  vector[n] alpha;
-  vector[n] beta;
-  
-  sigma_u ~ exponential(1);
-  phi ~ exponential(1);
+  alpha ~ gamma(0.01, 0.01);
   
   for(i in 1:(p + 1)){
     betas[i] ~ cauchy(0, 10);
   }
-  
-  mu = exp(x*betas + u[rfid]);
-  alpha = mu .* mu/phi;
-  beta = mu/phi;
-  
-  y ~ gamma(alpha, beta);
+  y ~ gamma(mu, alpha);
 }
