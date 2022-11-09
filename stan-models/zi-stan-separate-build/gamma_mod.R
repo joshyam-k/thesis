@@ -21,8 +21,10 @@ dat_nz <- dat_full %>%
 
 stan_list <- list(
   n = nrow(dat_nz),
-  p = 1,
-  x = model.matrix(~ tcc, dat_nz),
+  p = 2,
+  rfid = dat_nz$group_id,
+  j = length(unique(dat_nz$group_id)),
+  x = model.matrix(~ tcc + tnt, dat_nz),
   y = dat_nz$DRYBIO_AG_TPA_live_ADJ
 )
 
@@ -30,28 +32,35 @@ stan_list <- list(
 fit_gamma <- stan(file = "stan-models/zi-stan-separate-build/y_mod_gamma.stan",
                   data = stan_list,
                   cores = parallel::detectCores(),
-                  iter = 1000,
+                  iter = 10000,
                   chains = 4)
 
 ext_gamma <- rstan::extract(fit_gamma)
 
 
-y_mcmc <- data.frame(
-  fixed_beta_0 = ext_gamma$beta[ ,1],
-  fixed_beta_1 = ext_gamma$beta[ ,2],
-  alpha = ext_gamma$alpha
-)
+
 
 
 new_tcc <- 80
+new_tnt <- 2
+new_grp <- 5
+
+y_mcmc <- data.frame(
+  fixed_beta_0 = ext_gamma$betas[ ,1],
+  fixed_beta_1 = ext_gamma$betas[ ,2],
+  fixed_beta_2 = ext_gamma$betas[ ,3],
+  alpha = ext_gamma$alpha,
+  u = ext_gamma$u[ ,new_grp]
+)
+
 
 y_mcmc %>% 
   mutate(
-    mu = exp(fixed_beta_0 + fixed_beta_1*new_tcc)
+    mu = exp(fixed_beta_0 + fixed_beta_1*new_tcc + fixed_beta_2*new_tnt + u)
   ) %>% 
   mutate(
     # R does this rowwise for us!
-    y_hat = rgamma(2000, shape = alpha, rate = alpha/mu)
+    y_hat = rgamma(20000, shape = alpha, rate = alpha/mu)
   ) %>% 
   ggplot(aes(x = y_hat)) +
   geom_density()
