@@ -34,7 +34,7 @@ model {
   mu_p = x*eta + v[rfid];
   z ~ bernoulli_logit(mu_p);
   
-  mu_y = x*beta + u[rfid];
+  mu_y = exp(x*beta + u[rfid]);
 
   for (i in 1:n) {
     y[i] ~ gamma(alpha, alpha/(z[i]*mu_y[i] + (1-z[i])*tau_2));
