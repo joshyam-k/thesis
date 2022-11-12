@@ -11,13 +11,13 @@ data {
 }
 
 parameters {
-  vector[p+1] beta;
-  vector[p+1] eta;
+  vector[p+1] beta;    // coefficients for linear model
+  vector[p+1] eta;     // coefficients for logistic regression
   real<lower=0> alpha; // shape parameter
-  vector[j] u;
-  vector[j] v;
-  real<lower=0> sigma_u;
-  real<lower=0> sigma_v;
+  vector[j] u;         // random effect vector for linear model
+  vector[j] v;         // random effect vector for logistic regression
+  real<lower=0> sigma_u; // sd for random effect of linear model
+  real<lower=0> sigma_v; // sd for random effect of logistic regression
 }
 
 model {
@@ -25,18 +25,18 @@ model {
   vector[n] mu_p;
   sigma_u ~ normal(0, 1000);
   sigma_v ~ normal(0, 1000);
+  alpha ~ gamma(0.01, 0.01);
   
-  for (i in 1:j) {
+  for (i in 1:p) {
     beta[i] ~ normal(0, sigma_u);
     eta[i] ~ normal(0, sigma_v);
   }
   
   mu_p = x*eta + v[rfid];
-  z ~ bernoulli_logit(mu_p);
-  
   mu_y = exp(x*beta + u[rfid]);
 
   for (i in 1:n) {
+    z[i] ~ bernoulli_logit(mu_p[i]);
     y[i] ~ gamma(alpha, alpha/(z[i]*mu_y[i] + (1-z[i])*tau_2));
   }
 }
