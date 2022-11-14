@@ -8,10 +8,18 @@ options(mc.cores = parallel::detectCores())
 dat_raw <- read_rds(here("data", "wa_plots_public.rds"))
 
 # for now need to remove counties with all zero
-dat_full <- dat_raw %>% 
+dat_raw <- dat_raw %>% 
   select(tcc, tnt, DRYBIO_AG_TPA_live_ADJ, COUNTYCD) %>% 
   group_by(COUNTYCD) %>% 
-  filter(!all(DRYBIO_AG_TPA_live_ADJ == 0)) %>% 
+  filter(!all(DRYBIO_AG_TPA_live_ADJ == 0)) %>%
+  ungroup() 
+
+# downsize
+counties_subset <- sample(x = unique(dat_raw$COUNTYCD), size = 10)
+
+dat_full <- dat_raw %>% 
+  filter(COUNTYCD %in% counties_subset) %>% 
+  group_by(COUNTYCD) %>% 
   mutate(group_id = cur_group_id()) %>% 
   ungroup()
 
@@ -41,11 +49,11 @@ stan_list_mod2 <- list(
 
 # run models -------------------------------------------------------------------
 
-fit_y_mod <- stan(file = "stan-models/zi-stan-separate-build/y_mod1.stan",
-               data = stan_list_mod1,
-               cores = parallel::detectCores(),
-               iter = 10000,
-               chains = 4)
+fit_gamma <- stan(file = "stan-models/zi-stan-separate-build/y_mod_gamma.stan",
+                  data = stan_list_mod1,
+                  cores = parallel::detectCores(),
+                  iter = 10000,
+                  chains = 4)
 
 
 fit_p_mod <- stan(file = "stan-models/zi-stan-separate-build/p_mod2.stan",
@@ -56,7 +64,7 @@ fit_p_mod <- stan(file = "stan-models/zi-stan-separate-build/p_mod2.stan",
 
 # extracting mcmc results ------------------------------------------------------
 
-ext_y_mod <- rstan::extract(fit_y_mod)
+ext_y_mod <- rstan::extract(fit_gamma)
 ext_p_mod <- rstan::extract(fit_p_mod)
 
 
@@ -87,10 +95,10 @@ group_id <- 8
 
 # dataframe-ing the stan mcmc output
 y_mcmc <- data.frame(
-  fixed_beta_0 = ext_y_mod$beta[ ,1],
-  fixed_beta_1 = ext_y_mod$beta[ ,2],
-  fixed_beta_2 = ext_y_mod$beta[ ,3],
-  sigma_e = ext_y_mod$sigma_e,
+  fixed_beta_0 = ext_y_mod$betas[ ,1],
+  fixed_beta_1 = ext_y_mod$betas[ ,2],
+  fixed_beta_2 = ext_y_mod$betas[ ,3],
+  alpha = ext_y_mod$alpha,
   u = ext_y_mod$u[ , group_id]
 )
 
@@ -108,15 +116,14 @@ full_mcmc <- cbind(y_mcmc, p_mcmc)
 # predictive distribution
 posterior_pred_dist <- full_mcmc %>% 
   mutate(
-    mu = fixed_beta_0 + fixed_beta_1*new_tcc + fixed_beta_2*new_tnt + u,
+    mu = exp(fixed_beta_0 + fixed_beta_1*new_tcc + fixed_beta_2*new_tnt + u),
     
     pr = exp(fixed_gamma_0 + fixed_gamma_1*new_tcc + fixed_gamma_2*new_tnt + v)/
       (1 + exp(fixed_gamma_0 + fixed_gamma_1*new_tcc + fixed_gamma_2*new_tnt + v))
-    
   ) %>% 
   mutate(
     # R does this rowwise for us!
-    y_hat = rnorm(20000, mean = mu, sd = sigma_e),
+    y_hat = rgamma(20000, shape = alpha, rate = alpha/mu),
     z_hat = rbinom(20000, 1, pr),
     y_final = y_hat*z_hat
   ) %>% 
