@@ -106,7 +106,7 @@ p_mcmc <- data.frame(
   fixed_gamma_0 = ext_p_mod$gamma[ ,1],
   fixed_gamma_1 = ext_p_mod$gamma[ ,2],
   fixed_gamma_2 = ext_p_mod$gamma[ ,3],
-  v = ext_p_mod$v[ , group_id]
+  v = ext_p_mod$v[ ,group_id]
 )
 
 full_mcmc <- cbind(y_mcmc, p_mcmc)
