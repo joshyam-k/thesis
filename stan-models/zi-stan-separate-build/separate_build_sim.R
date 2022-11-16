@@ -177,6 +177,13 @@ for (i in 1:100) {
 
 
 
+coverage <- function(df){
+  df %>% 
+    rowwise() %>% 
+    mutate(falls_in = between(y_true, lower, upper)) %>% 
+    ungroup() %>% 
+    summarise(coverage = mean(falls_in))
+}
 
 
 
