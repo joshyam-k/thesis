@@ -30,7 +30,3 @@ coverage(s3_res)
 
 coverage(s4_res)
 
-
-
-
-

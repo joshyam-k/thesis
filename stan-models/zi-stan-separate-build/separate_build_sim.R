@@ -173,17 +173,31 @@ for (i in 1:100) {
   
 }
 
-# write_csv(summary_results, "~/Desktop/thesis/bayes_two_part_sim_res.csv")
+
+## Results
+
+sim_res <- read_csv("~/Desktop/thesis/bayes_two_part_sim_res.csv")
+
+
+### Coverage 
+
+sim_res %>% 
+  rowwise() %>% 
+  mutate(falls_in = between(y_true, lower, upper)) %>% 
+  ungroup() %>% 
+  summarise(coverage = mean(falls_in))
+
+### Bias
+
+sim_res %>% 
+  mutate(indv = y_hat_mean - y_true) %>% 
+  summarise(bias = mean(indv))
 
 
 
-coverage <- function(df){
-  df %>% 
-    rowwise() %>% 
-    mutate(falls_in = between(y_true, lower, upper)) %>% 
-    ungroup() %>% 
-    summarise(coverage = mean(falls_in))
-}
+
+
+
 
 
 

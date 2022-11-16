@@ -21,22 +21,17 @@ parameters {
 }
 
 model {
-  vector[n] mu_y;
-  vector[n] mu_p;
-  sigma_u ~ normal(0, 1000);
-  sigma_v ~ normal(0, 1000);
+  sigma_u ~ exponential(0.01);
+  sigma_v ~ exponential(0.01);
   alpha ~ gamma(0.01, 0.01);
   
-  for (i in 1:p) {
-    beta[i] ~ normal(0, sigma_u);
-    eta[i] ~ normal(0, sigma_v);
+  for (i in 1:j) {
+    u[i] ~ normal(0, sigma_u);
+    v[i] ~ normal(0, sigma_v);
   }
   
-  mu_p = x*eta + v[rfid];
-  mu_y = exp(x*beta + u[rfid]);
-
   for (i in 1:n) {
     z[i] ~ bernoulli_logit(x[i]*eta + v[rfid[i]]);
-    y[i] ~ gamma(alpha, alpha/(z[i]*(exp(x[i]*beta + u[rfid[i]])) + (1-z[i])*tau_2));
+    y[i] ~ gamma(alpha, alpha/(z[i]*exp(x[i]*beta + u[rfid[i]]) + (1-z[i])*tau_2));
   }
 }
