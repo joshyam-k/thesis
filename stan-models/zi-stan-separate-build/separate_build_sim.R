@@ -1,5 +1,6 @@
 library(tidyverse)
 library(rstan)
+library(lme4)
 
 set.seed(10110)
 
@@ -49,6 +50,24 @@ for (i in 1:100) {
 }
 
 
+
+test <- sim_data_sets[[2]]
+
+modp <- glmer(Z ~ X + (1 | group), data = test, family = "binomial")
+mody <- glmer(Y ~ X + (1 | group), data = test[test$Z != 0, ], family = Gamma(link = "log"))
+
+tibble(
+  doi = test$group,
+  pred = predict(modp, test, type = "response")*predict(mody, test, type = "response")  
+) %>% 
+  group_by(doi) %>% 
+  summarise(pred_grp = mean(pred)) %>% 
+  ungroup()
+
+
+
+
+
 model_build <- function(data) {
   
   grp <- 5
@@ -63,6 +82,9 @@ model_build <- function(data) {
   
   data_nz <- data_train %>% 
     filter(Y > 0)
+  
+  ## zi
+  
   
   stan_list_mod1 <- list(
     n = nrow(data_nz),
@@ -147,13 +169,9 @@ model_build <- function(data) {
   
 }
 
-
-
 sim_res <- sim_data_sets %>% 
   map(.f = model_build)
 
-
-sim_res[[1]]
 
 summary_results <- data.frame(run = rep(0, 100), y_hat_mean = rep(0, 100), y_hat_median = rep(0, 100),
                               lower = rep(0, 100), upper = rep(0, 100), y_true = rep(0, 100))
@@ -174,6 +192,11 @@ for (i in 1:100) {
 }
 
 
+
+
+
+
+
 ## Results
 
 sim_res <- read_csv("~/Desktop/thesis/bayes_two_part_sim_res.csv")
@@ -191,7 +214,8 @@ sim_res %>%
 
 sim_res %>% 
   mutate(indv = y_hat_mean - y_true) %>% 
-  summarise(bias = mean(indv))
+  ggplot(aes(x = indv))+
+  geom_density()
 
 
 

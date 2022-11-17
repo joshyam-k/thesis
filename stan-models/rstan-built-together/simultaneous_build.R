@@ -7,8 +7,6 @@ options(mc.cores = parallel::detectCores())
 
 dat_raw <- read_rds(here("data", "wa_plots_public.rds"))
 
-
-
 # for now need to remove counties with all zero
 dat_raw <- dat_raw %>% 
   select(tcc, tnt, DRYBIO_AG_TPA_live_ADJ, COUNTYCD) %>% 
@@ -31,7 +29,7 @@ stan_list <- list(
   y = dat_full$DRYBIO_AG_TPA_live_ADJ,
   x = model.matrix(~ tcc + tnt, dat_full),
   z = as.integer(as.logical(dat_full$DRYBIO_AG_TPA_live_ADJ)),
-  tau_2 = 0.001,
+  tau_2 = 1,
   rfid = dat_full$group_id
 )
 
