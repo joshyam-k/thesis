@@ -6,15 +6,12 @@ set.seed(10110)
 
 ## Setting 1 -- Bayesian Model should correct specify
 # n is number of total observations, g is number of groups. n should be divisible by g.
-DGP_s1 <- function(n, g){
+DGP_s1 <- function(n, g) {
   
-  # number of observations per group
   m <- n/g
   
-  # Create x
   X <- rnorm(n, 0, 1)
   
-  # Assign Groups
   group <- rep(seq(1, g), m) 
   
   # Generate REs
@@ -33,11 +30,10 @@ DGP_s1 <- function(n, g){
   beta_y <- 1
   
   ypure <- 10 + X*beta_y + gamma_y[group] 
-  
+
   Y <- rgamma(n, shape = 3, rate = 1/ypure) # Before accounting for Z
   Y <- Z*Y # If Z=0, then Y=0
-  
-  # Return dataset
+
   return(tibble(X, Y, Z, group))
   
 }
@@ -48,23 +44,6 @@ for (i in 1:100) {
   # using n = 11000 because we will hold out the last 1000 to predict on
   sim_data_sets[[i]] <- DGP_s1(n = 11000, g = 10)
 }
-
-
-
-test <- sim_data_sets[[2]]
-
-modp <- glmer(Z ~ X + (1 | group), data = test, family = "binomial")
-mody <- glmer(Y ~ X + (1 | group), data = test[test$Z != 0, ], family = Gamma(link = "log"))
-
-tibble(
-  doi = test$group,
-  pred = predict(modp, test, type = "response")*predict(mody, test, type = "response")  
-) %>% 
-  group_by(doi) %>% 
-  summarise(pred_grp = mean(pred)) %>% 
-  ungroup()
-
-
 
 
 
