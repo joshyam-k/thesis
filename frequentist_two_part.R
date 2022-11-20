@@ -36,7 +36,7 @@ boot_predict <- function(models, test) {
   return(mean(pred1 * pred2))
 }
 
-f
+system.time(y<- 10)[3]
 
 
 

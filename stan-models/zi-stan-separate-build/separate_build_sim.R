@@ -65,7 +65,7 @@ model_build <- function(data) {
   
   ## bayesian ------------------------------------------------------------------
   
-
+  start_bayes <- Sys.time()
   stan_list_mod1 <- list(
     n = nrow(data_nz),
     p = 1,
@@ -149,16 +149,24 @@ model_build <- function(data) {
 
   q_bayes <- quantile(full_group_preds$y_hat, probs = c(0.025, 0.975))
 
+  end_bayes <- Sys.time()
+  time_bayes <- as.numeric(end_bayes - start_bayes)
+  
   out_bayes <- tibble(
     y_hat_mean = mean(full_group_preds$y_hat),
     lower = q_bayes[1],
     upper = q_bayes[2],
     y_true = full_group_preds$y_true[1],
+    duration = time_bayes,
     model = "b"
   )
   
+
+  
+  
   ## Frequentist ---------------------------------------------------------------
   
+  start_freq <- Sys.time()
   # setting up helper functions
   boot_data_gen <- function(data, force_in = 5) {
     grps <- sample(
@@ -207,25 +215,26 @@ model_build <- function(data) {
   
   q_freq <- quantile(boot_data, probs = c(0.025, 0.975))
   
+  end_freq <- Sys.time()
+  time_freq <- as.numeric(end_freq - start_freq)
+  
   out_freq <- tibble(
     y_hat_mean = original_pred,
     lower = q_freq[1],
     upper = q_freq[2],
     y_true = mean(data_test$Y),
+    duration = time_freq,
     model = "f"
   )
   
   out_full <- rbind(out_bayes, out_freq)
   
-  
-  
+
 }
 
 
-tic()
 sim_res <- sim_data_sets %>% 
   future_map(.f = safely(model_build), .options = furrr_options(seed = T))
-toc()
 
 
 
