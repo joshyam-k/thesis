@@ -1,17 +1,20 @@
 library(tidyverse)
 library(rstan)
 library(lme4)
+library(furrr)
+library(tictoc)
+options(mc.cores = parallel::detectCores())
 
+# replace with number of active cores your computer can use
+plan(multisession, workers = 6)
+# set a seed
 set.seed(10110)
 
-## Setting 1 -- Bayesian Model should correct specify
-# n is number of total observations, g is number of groups. n should be divisible by g.
+
 DGP_s1 <- function(n, g) {
   
   m <- n/g
-  
   X <- rnorm(n, 0, 1)
-  
   group <- rep(seq(1, g), m) 
   
   # Generate REs
@@ -20,15 +23,12 @@ DGP_s1 <- function(n, g) {
   
   # Make Z -- 1 means Y>0, 0 means Y=0
   beta_z <- 1
-  
   xb <- 1.5 + X*beta_z + gamma_z[group] # Adding 1 so we have <50% 0's
   prob <- exp(xb) / (1 + exp(xb)) # Probability of being non-zero
-  
   Z <- 1*(runif(n)<prob) # simulating the Z
   
   # Make Y
   beta_y <- 1
-  
   ypure <- 10 + X*beta_y + gamma_y[group] 
 
   Y <- rgamma(n, shape = 3, rate = 1/ypure) # Before accounting for Z
@@ -39,10 +39,11 @@ DGP_s1 <- function(n, g) {
 }
 
 
+# setting up sim data sets
 sim_data_sets <- list()
-for (i in 1:100) {
-  # using n = 11000 because we will hold out the last 1000 to predict on
-  sim_data_sets[[i]] <- DGP_s1(n = 11000, g = 10)
+for (i in 1:150) {
+  # train on 2000 test on 1000 (but only on one group, so 50)
+  sim_data_sets[[i]] <- DGP_s1(n = 3000, g = 20)
 }
 
 
@@ -52,7 +53,7 @@ model_build <- function(data) {
   grp <- 5
   
   data_train <- data %>% 
-    slice_head(n = 10000)
+    slice_head(n = 2000)
   
   data_test <- data %>% 
     slice_tail(n = 1000) %>%
@@ -62,9 +63,9 @@ model_build <- function(data) {
   data_nz <- data_train %>% 
     filter(Y > 0)
   
-  ## zi
+  ## bayesian ------------------------------------------------------------------
   
-  
+
   stan_list_mod1 <- list(
     n = nrow(data_nz),
     p = 1,
@@ -73,7 +74,7 @@ model_build <- function(data) {
     x = model.matrix(~ X, data_nz),
     y = data_nz$Y
   )
-  
+
   stan_list_mod2 <- list(
     n = nrow(data_train),
     p = 1,
@@ -82,119 +83,155 @@ model_build <- function(data) {
     x = model.matrix(~ X, data_train),
     z = data_train$Z
   )
-  
+
   fit_gamma <- stan(file = "stan-models/zi-stan-separate-build/y_mod_gamma.stan",
                     data = stan_list_mod1,
                     cores = parallel::detectCores(),
                     iter = 10000,
                     chains = 4)
-  
+
   fit_p_mod <- stan(file = "stan-models/zi-stan-separate-build/p_mod2.stan",
                     data = stan_list_mod2,
                     cores = parallel::detectCores(),
                     iter = 10000,
                     chains = 4)
-  
+
   ext_y_mod <- rstan::extract(fit_gamma)
   ext_p_mod <- rstan::extract(fit_p_mod)
-  
+
   y_mcmc <- data.frame(
     fixed_beta_0 = ext_y_mod$betas[ ,1],
     fixed_beta_1 = ext_y_mod$betas[ ,2],
     alpha = ext_y_mod$alpha,
     u = ext_y_mod$u[ ,grp]
   )
-  
+
   p_mcmc <- data.frame(
     fixed_gamma_0 = ext_p_mod$gamma[ ,1],
     fixed_gamma_1 = ext_p_mod$gamma[ ,2],
     v = ext_p_mod$v[ ,grp]
   )
-  
+
   full_mcmc <- cbind(y_mcmc, p_mcmc)
-  
-  full_preds <- data.frame(y_final = rep(0, nrow(data_test)*20000), iter = rep(0, nrow(data_test*20000)))
+
+  full_preds <- data.frame(
+    y_final = rep(0, nrow(data_test)*20000),
+    iter = rep(0, nrow(data_test*20000))
+    )
+
   j <- 1
-  
   for (i in 1:nrow(data_test)) {
-    posterior_pred_dist <- full_mcmc %>% 
+    posterior_pred_dist <- full_mcmc %>%
       mutate(
         mu = exp(fixed_beta_0 + fixed_beta_1*data_test$X[i]+ u),
-        
+
         pr = exp(fixed_gamma_0 + fixed_gamma_1*data_test$X[i] + v)/
           (1 + exp(fixed_gamma_0 + fixed_gamma_1*data_test$X[i] + v))
-      ) %>% 
+      ) %>%
       mutate(
         # R does this rowwise for us!
         y_hat = rgamma(20000, shape = alpha, rate = alpha/mu),
         z_hat = rbinom(20000, 1, pr),
         y_final = y_hat*z_hat
-      ) %>% 
-      mutate(iter = row_number()) %>% 
+      ) %>%
+      mutate(iter = row_number()) %>%
       select(y_final, iter)
-    
+
     full_preds[j:(j + 20000 - 1), ] <- posterior_pred_dist
-    
+
     j <- j + 20000
   }
-  
-  full_group_preds <- full_preds %>% 
-    group_by(iter) %>% 
-    summarise(y_hat = mean(y_final)) %>% 
+
+  full_group_preds <- full_preds %>%
+    group_by(iter) %>%
+    summarise(y_hat = mean(y_final)) %>%
     mutate(y_true = mean(data_test$Y))
-    
-  
-  return(full_group_preds)
-  
-}
 
-sim_res <- sim_data_sets %>% 
-  map(.f = model_build)
+  q_bayes <- quantile(full_group_preds$y_hat, probs = c(0.025, 0.975))
 
-
-summary_results <- data.frame(run = rep(0, 100), y_hat_mean = rep(0, 100), y_hat_median = rep(0, 100),
-                              lower = rep(0, 100), upper = rep(0, 100), y_true = rep(0, 100))
-
-for (i in 1:100) {
-  q <- quantile(sim_res[[i]]$y_hat, probs = c(0.025, 0.975))
-  out <- tibble(
-    run = i,
-    y_hat_mean = mean(sim_res[[i]]$y_hat),
-    y_hat_median = median(sim_res[[i]]$y_hat),
-    lower = q[1],
-    upper = q[2],
-    y_true = sim_res[[i]]$y_true[1]
+  out_bayes <- tibble(
+    y_hat_mean = mean(full_group_preds$y_hat),
+    lower = q_bayes[1],
+    upper = q_bayes[2],
+    y_true = full_group_preds$y_true[1],
+    model = "b"
   )
   
-  summary_results[i, ] <- out
+  ## Frequentist ---------------------------------------------------------------
+  
+  # setting up helper functions
+  boot_data_gen <- function(data, force_in = 5) {
+    grps <- sample(
+      x = unique(data$group),
+      size = length(unique(data$group)) - 1,
+      replace = T
+    )
+    tibble(
+      # force a group to be in the sample
+      group = c(force_in, grps)
+    ) %>% 
+      left_join(data, by = "group")
+  }
+  
+  two_part_mod <- function(data) {
+    modp <- glmer(Z ~ X + (1 | group), data = data, family = "binomial")
+    mody <- glmer(Y ~ X + (1 | group), data = data[data$Z != 0, ], family = Gamma(link = "log"))
+    return(list(modp, mody))
+  }
+  
+  boot_predict <- function(models, data) {
+    pred1 <- predict(models[[1]], newdata = data, type = "response")
+    pred2 <- predict(models[[2]], newdata = data, type = "response") 
+    return(mean(pred1 * pred2))
+  }
+  
+  # get original prediction
+  original_fit <- two_part_mod(data_train) 
+  pred1 <- predict(original_fit[[1]], newdata = data_test, type = "response")
+  pred2 <- predict(original_fit[[2]], newdata = data_test, type = "response") 
+  original_pred <- mean(pred1 * pred2)
+  
+  # run boostrapping
+  # returns a vector of length 400 with the mean of the predictions
+  boot_data <- future_map(
+    1:300,
+    ~ boot_data_gen(data = data_train),
+    .options = furrr_options(seed = T)
+  ) %>% 
+    future_map(
+      two_part_mod
+    ) %>% 
+    future_map_dbl(
+      ~ boot_predict(.x, data = data_test)
+    )
+  
+  q_freq <- quantile(boot_data, probs = c(0.025, 0.975))
+  
+  out_freq <- tibble(
+    y_hat_mean = original_pred,
+    lower = q_freq[1],
+    upper = q_freq[2],
+    y_true = mean(data_test$Y),
+    model = "f"
+  )
+  
+  out_full <- rbind(out_bayes, out_freq)
+  
+  
   
 }
 
 
+tic()
+sim_res <- sim_data_sets %>% 
+  future_map(.f = safely(model_build), .options = furrr_options(seed = T))
+toc()
 
 
 
 
 
-## Results
 
-sim_res <- read_csv("~/Desktop/thesis/bayes_two_part_sim_res.csv")
-
-
-### Coverage 
-
-sim_res %>% 
-  rowwise() %>% 
-  mutate(falls_in = between(y_true, lower, upper)) %>% 
-  ungroup() %>% 
-  summarise(coverage = mean(falls_in))
-
-### Bias
-
-sim_res %>% 
-  mutate(indv = y_hat_mean - y_true) %>% 
-  ggplot(aes(x = indv))+
-  geom_density()
 
 
 
