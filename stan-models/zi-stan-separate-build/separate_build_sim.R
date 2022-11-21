@@ -41,7 +41,7 @@ DGP_s1 <- function(n, g) {
 
 # setting up sim data sets
 sim_data_sets <- list()
-for (i in 1:150) {
+for (i in 1:50) {
   # train on 2000 test on 1000 (but only on one group, so 50)
   sim_data_sets[[i]] <- DGP_s1(n = 3000, g = 20)
 }
@@ -235,6 +235,21 @@ model_build <- function(data) {
 
 sim_res <- sim_data_sets %>% 
   future_map(.f = safely(model_build), .options = furrr_options(seed = T))
+
+
+full_res <- data.frame()
+for(i in 1:50){
+  full_res <- rbind(full_res, sim_res[[i]]$result)
+}
+
+full_res %>% 
+  group_by(model) %>% 
+  rowwise() %>% 
+  mutate(falls_in = between(y_true, lower, upper)) %>% 
+  ungroup() %>% 
+  group_by(model) %>% 
+  summarise(coverage = mean(falls_in))
+
 
 
 
