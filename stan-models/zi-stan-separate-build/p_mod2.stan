@@ -15,11 +15,11 @@ model {
   vector[n] mu;
   
   // phyper rior
-  sigma_v ~ exponential(1);
+  sigma_v ~ exponential(0.1);
   
   // fixed effect prior
   for(i in 1:(p + 1)){
-    gamma[i] ~ normal(0, 10000);
+    gamma[i] ~ normal(0, 1000);
   }
   
   for(grp in 1:j){

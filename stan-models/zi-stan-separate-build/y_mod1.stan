@@ -15,12 +15,12 @@ parameters {
 model {
   vector[n] mu;
   // hyper priors
-  sigma_e ~ exponential(1);
-  sigma_u ~ exponential(1);
+  sigma_e ~ exponential(0.1);
+  sigma_u ~ exponential(0.1);
   
   // adding priors to fixed effects
   for(i in 1:(p + 1)){
-    beta[i] ~ normal(0, 10000);
+    beta[i] ~ normal(0, 1000);
   }
   
   // model building

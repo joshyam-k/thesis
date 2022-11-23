@@ -68,7 +68,7 @@ stan_simultaneous <- list(
   y = dat_full$DRYBIO_AG_TPA_live_ADJ,
   x = model.matrix(~ tcc + tnt, dat_full),
   z = as.integer(as.logical(dat_full$DRYBIO_AG_TPA_live_ADJ)),
-  tau_2 = 0.0001,
+  tau_2 = 0.00001,
   rfid = dat_full$group_id
 )
 
@@ -105,6 +105,9 @@ full_comp %>%
   geom_density(alpha = 0.5, color = NA) +
   facet_wrap(~param, scales = "free") +
   labs(
-    title = "Simultaneous vs Separate Bayesian model builds",
-    subtitle = "u is associated with the linear model, v the logistic regression \n sigma_u and sigma_v are the sd of the random effects of each respective model"
+    title = "Simultaneous vs Separate Bayesian model builds"
   )
+
+full_comp %>% 
+  filter(model == "simultaneous") %>% 
+  filter(param == "beta_1")
