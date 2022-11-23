@@ -8,14 +8,14 @@ data {
 }
 parameters {
   vector[p + 1] gamma;       // coefficients for predictors
-  real<lower = 0> tau_u; // random effect sd
+  real<lower = 0> sigma_v; // random effect sd
   vector[j] v; // rf vector
 }
 model {
   vector[n] mu;
   
   // phyper rior
-  tau_u ~ exponential(1);
+  sigma_v ~ exponential(1);
   
   // fixed effect prior
   for(i in 1:(p + 1)){
@@ -23,7 +23,7 @@ model {
   }
   
   for(grp in 1:j){
-    v[grp] ~ normal(0, tau_u);
+    v[grp] ~ normal(0, sigma_v);
   }
   
   // all vectorized

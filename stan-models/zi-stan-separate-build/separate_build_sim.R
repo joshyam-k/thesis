@@ -41,7 +41,7 @@ DGP_s1 <- function(n, g) {
 
 # setting up sim data sets
 sim_data_sets <- list()
-for (i in 1:50) {
+for (i in 1:1) {
   # train on 2000 test on 1000 (but only on one group, so 50)
   sim_data_sets[[i]] <- DGP_s1(n = 3000, g = 20)
 }
@@ -141,17 +141,20 @@ model_build <- function(data) {
 
     j <- j + 20000
   }
+  
 
   full_group_preds <- full_preds %>%
     group_by(iter) %>%
     summarise(y_hat = mean(y_final)) %>%
     mutate(y_true = mean(data_test$Y))
+  
+  return(full_group_preds)
 
   q_bayes <- quantile(full_group_preds$y_hat, probs = c(0.025, 0.975))
 
   end_bayes <- Sys.time()
   time_bayes <- as.numeric(end_bayes - start_bayes)
-  
+
   out_bayes <- tibble(
     y_hat_mean = mean(full_group_preds$y_hat),
     lower = q_bayes[1],
@@ -160,12 +163,12 @@ model_build <- function(data) {
     duration = time_bayes,
     model = "b"
   )
-  
 
-  
-  
+
+
+
   ## Frequentist ---------------------------------------------------------------
-  
+
   start_freq <- Sys.time()
   # setting up helper functions
   boot_data_gen <- function(data, force_in = 5) {
@@ -177,47 +180,47 @@ model_build <- function(data) {
     tibble(
       # force a group to be in the sample
       group = c(force_in, grps)
-    ) %>% 
+    ) %>%
       left_join(data, by = "group")
   }
-  
+
   two_part_mod <- function(data) {
     modp <- glmer(Z ~ X + (1 | group), data = data, family = "binomial")
     mody <- glmer(Y ~ X + (1 | group), data = data[data$Z != 0, ], family = Gamma(link = "log"))
     return(list(modp, mody))
   }
-  
+
   boot_predict <- function(models, data) {
     pred1 <- predict(models[[1]], newdata = data, type = "response")
-    pred2 <- predict(models[[2]], newdata = data, type = "response") 
+    pred2 <- predict(models[[2]], newdata = data, type = "response")
     return(mean(pred1 * pred2))
   }
-  
+
   # get original prediction
-  original_fit <- two_part_mod(data_train) 
+  original_fit <- two_part_mod(data_train)
   pred1 <- predict(original_fit[[1]], newdata = data_test, type = "response")
-  pred2 <- predict(original_fit[[2]], newdata = data_test, type = "response") 
+  pred2 <- predict(original_fit[[2]], newdata = data_test, type = "response")
   original_pred <- mean(pred1 * pred2)
-  
+
   # run boostrapping
   # returns a vector of length 400 with the mean of the predictions
   boot_data <- future_map(
     1:300,
     ~ boot_data_gen(data = data_train),
     .options = furrr_options(seed = T)
-  ) %>% 
+  ) %>%
     future_map(
       two_part_mod
-    ) %>% 
+    ) %>%
     future_map_dbl(
       ~ boot_predict(.x, data = data_test)
     )
-  
+
   q_freq <- quantile(boot_data, probs = c(0.025, 0.975))
-  
+
   end_freq <- Sys.time()
   time_freq <- as.numeric(end_freq - start_freq)
-  
+
   out_freq <- tibble(
     y_hat_mean = original_pred,
     lower = q_freq[1],
@@ -226,9 +229,10 @@ model_build <- function(data) {
     duration = time_freq,
     model = "f"
   )
-  
+
   out_full <- rbind(out_bayes, out_freq)
   
+  return(out_full)
 
 }
 
