@@ -19,12 +19,9 @@ To assess forest metrics across the United States, the FIA employs a quasi-syste
 
 (add image here)
 
-These sampled locations are referred to as plot-level data and the FIA sends a crew out to physically measure a wealth of forest attributes at that location. As you might expect, not only is this method extremely time intensive, but it is also very expensive. The vastness of the nation's forests in tandem with the resources needed to collect plot-level data, make it impossible to collect census level data on forest metrics. The challenge for the FIA is thus to provide reliable and accurate estimates of forest attributes using this 
+These sampled locations are referred to as plot-level data and the FIA sends a crew out to physically measure a wealth of forest attributes at that location. As you might expect, not only is this method extremely time intensive, but it is also very expensive. The vastness of the nation's forests in tandem with the resources needed to collect plot-level data, make it impossible to collect census level data on forest metrics. The challenge for the FIA is thus to provide reliable and accurate estimates of forest attributes using this relatively sparse data source. To do this, the FIA makes use of other data sources and statistical models. The main secondary data source that the FIA employes is remote sensed data. The remote sensed data typically includes climate metrics (e.g. temperature and precipitation), geomorphological measures (e.g. elevation and eastness), as well as metrics like tree canopy cover which can be measured from a satellite. 
 
-
-The main secondary data source that the FIA employes is remote sensing data. The remote sensing data typically includes climate metrics (e.g. temperature and precipitation), geomorphological measures (e.g. elevation and eastness), as well as metrics like tree canopy cover which can be measured from a satellite. 
-
-
+Typically these estimates are generated for certain areas of interest. For example, at one extreme, the FIA might want to know what the average tree cover is in the state of California. In a setting such as this one, it will be fairly easy to produce accurate estimates because our area of interest is spatially large, in small areas of interest, such as counties, it is much harder.
 
 
 
