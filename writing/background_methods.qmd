@@ -1,0 +1,32 @@
+---
+title: "Background and Methods"
+format: html
+editor: visual
+---
+
+### Structure
+
+- FIA/data structure -> bayesian & frequentist
+
+
+
+
+
+
+The United States Forestry Inventory and Analysis Program (FIA) monitors the nation's forests by collecting data on, and providing estimates for, a wide array of forest attributes. Not only is this work vitally important, but it's essential that it be done accurately and efficiently: "\[The\] FIA is responsible for reporting on dozens, if not hundreds, of forest attributes relating to merchantable timber and other wood products, fuels and potential fire hazard, condition of wildlife habitats, risk associated with fire, insects or disease, biomass, carbon storage, forest health, and other general characteristics of forest ecosystems." (McConville 2020).
+
+To assess forest metrics across the United States, the FIA employs a quasi-systematic sampling design to collect data at ground plots across the U.S. The FIA employs a stratified sampling approach to selecting these ground plots, first partitioning the entire U.S. into 6000 acre hexagons and then randomly sampling locations from within these hexagons for measurement.
+
+(add image here)
+
+These sampled locations are referred to as plot-level data and the FIA sends a crew out to physically measure a wealth of forest attributes at that location. As you might expect, not only is this method extremely time intensive, but it is also very expensive. The vastness of the nation's forests in tandem with the resources needed to collect plot-level data, make it impossible to collect census level data on forest metrics. The challenge for the FIA is thus to provide reliable and accurate estimates of forest attributes using this 
+
+
+The main secondary data source that the FIA employes is remote sensing data. The remote sensing data typically includes climate metrics (e.g. temperature and precipitation), geomorphological measures (e.g. elevation and eastness), as well as metrics like tree canopy cover which can be measured from a satellite. 
+
+
+
+
+
+
+Two common forest attributes of interest include the number of tree stems per acre and basal area, a measure of the total area per acre occupied by tree stems. When the areas are spatially large, the current estimators that the FIA employs perform well, however, there has been an increasing demand for accurate and reliable estimates of forest attributes in small areas, defined as sub-populations, typically with few observations per area. The enormity of the nation's forests in combination with the resources required to collect plot-level data means that for small-area estimation, typically only a few plot-level observations are available to build estimates. As mentioned above, collecting data at the plot-level is both labor-intensive and expensive and thus prohibits additional data collection. Instead, the FIA employs statistical methods alongside structure in the dataset to improve forest attribute estimation, referred to as Small Area Estimation (SAE). Here, we study SAE techniques to improve forest inventory estimates in the case where the data is zero-inflated. 

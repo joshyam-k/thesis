@@ -108,6 +108,25 @@ full_comp %>%
     title = "Simultaneous vs Separate Bayesian model builds"
   )
 
-full_comp %>% 
-  filter(model == "simultaneous") %>% 
-  filter(param == "beta_1")
+
+# compare correlation of betas and gammas for both models
+
+wide <- full_comp %>% 
+  filter(param %in% c("beta_1", "beta_2", "beta_3", "gamma_1", "gamma_2", "gamma_3")) %>% 
+  filter(model == "simultaneous") %>%
+  group_by(param) %>% 
+  mutate(id = row_number()) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = param, values_from = value) %>% 
+  select(-id)
+
+cor(wide$beta_1, wide$gamma_1)
+cor(wide$beta_2, wide$gamma_2)
+cor(wide$beta_3, wide$gamma_3)
+
+
+
+
+
+
+
