@@ -4,14 +4,74 @@ format: html
 editor: visual
 ---
 
-### Structure
+## Structure
 
-- FIA/data structure -> bayesian & frequentist
+-   zero inflation -\> bayesian vs frequentist -\> FIA data -\> ...
+
+### Data Structure
+
+#### Zero-Inflation
+
+First some housekeeping. As the name suggests, data are canonically classified as being zero-inflated when they contain a significant proportion of zeroes. While it's hardly ever very productive to spell out a definition for a phrase that is it's own definition, we do so here to emphasize the fact that to call data zero-inflated is to only say something very broad about how that data is distributed. There is no commonly accepted cutoff for at what proportion of zeroes our data deserves the label zero-inflation, and there is no restriction on the distribution of the non-zero data. While the work done in this thesis concerns zero-inflated data with no constraint on the level of "zeroeness", we do require that the non-zero data is positive and continuously distributed. For example our response variables might look like this:
+
+```{r, include=F, message=F, warning=F}
+set.seed(103)
+library(tidyverse)
+
+z <- tibble(
+  z = rep(0, 2500)
+)
+
+nz <- tibble(
+  nz = rgamma(1000, 3, 4)
+)
+
+ggplot() +
+  geom_density(data = nz, aes(x = nz, y = ..count..), fill = "midnightblue", color = "white", alpha = 0.8) +
+  geom_histogram(data = z, aes(x = z), fill = "midnightblue", color = "white", alpha = 0.8) +
+  labs(
+    x = "Response Variable"
+  ) +
+  theme_bw()
+
+
+```
+
+Although for the duration of this thesis we will simply refer to our data as being zero-inflated and our models as being suited for zero-inflated data, this is simply a matter of convenience and not a statement that our methods work for any situation in which data can be considered zero-inflated.
+
+#### Modeling struggles
+
+To motivate our methods we'll first show what happens when we try to just fit a normal linear model to this type of data. 
+
+```{r}
+DGP_s1 <- function(n) {
+  
+  X <- rnorm(n, 0, 1)
+  beta_z <- 1
+  xb <- X*beta_z 
+  prob <- exp(xb) / (1 + exp(xb)) 
+  Z <- 1*(runif(n)<prob)
+  beta_y <- 1
+  ypure <- 5 + X*beta_y 
+  Y <- rgamma(n, shape = 4, rate = 1/ypure) 
+  Y <- Z*Y 
+
+  return(tibble(X, Y, Z))
+  
+}
+
+data <- DGP_s1(1000)
+
+data %>% 
+  ggplot(aes(x = X, y = Y)) + 
+  geom_point() +
+  geom_smooth(method = "lm", se = F)
+```
 
 
 
 
-
+### FIA
 
 The United States Forestry Inventory and Analysis Program (FIA) monitors the nation's forests by collecting data on, and providing estimates for, a wide array of forest attributes. Not only is this work vitally important, but it's essential that it be done accurately and efficiently: "\[The\] FIA is responsible for reporting on dozens, if not hundreds, of forest attributes relating to merchantable timber and other wood products, fuels and potential fire hazard, condition of wildlife habitats, risk associated with fire, insects or disease, biomass, carbon storage, forest health, and other general characteristics of forest ecosystems." (McConville 2020).
 
@@ -19,11 +79,6 @@ To assess forest metrics across the United States, the FIA employs a quasi-syste
 
 (add image here)
 
-These sampled locations are referred to as plot-level data and the FIA sends a crew out to physically measure a wealth of forest attributes at that location. As you might expect, not only is this method extremely time intensive, but it is also very expensive. The vastness of the nation's forests in tandem with the resources needed to collect plot-level data, make it impossible to collect census level data on forest metrics. The challenge for the FIA is thus to provide reliable and accurate estimates of forest attributes using this relatively sparse data source. To do this, the FIA makes use of other data sources and statistical models. The main secondary data source that the FIA employes is remote sensed data. The remote sensed data typically includes climate metrics (e.g. temperature and precipitation), geomorphological measures (e.g. elevation and eastness), as well as metrics like tree canopy cover which can be measured from a satellite. 
+These sampled locations are referred to as plot-level data and the FIA sends a crew out to physically measure a wealth of forest attributes at that location. As you might expect, not only is this method extremely time intensive, but it is also very expensive. The vastness of the nation's forests in tandem with the resources needed to collect plot-level data, make it impossible to collect census level data on forest metrics. Thus, the need for additional data sources as well as statistical models are vital to the work that the FIA does. The main secondary data source that the FIA employes is remote sensed data. The remote sensed data typically includes climate metrics (e.g. temperature and precipitation), geomorphological measures (e.g. elevation and eastness), as well as metrics like tree canopy cover which can be measured from a satellite. These remote sensed data are referred to as pixel-level data and can be hugely helpful in reducing the variability in the FIA's estimates.
 
-Typically these estimates are generated for certain areas of interest. For example, at one extreme, the FIA might want to know what the average tree cover is in the state of California. In a setting such as this one, it will be fairly easy to produce accurate estimates because our area of interest is spatially large, in small areas of interest, such as counties, it is much harder.
-
-
-
-
-Two common forest attributes of interest include the number of tree stems per acre and basal area, a measure of the total area per acre occupied by tree stems. When the areas are spatially large, the current estimators that the FIA employs perform well, however, there has been an increasing demand for accurate and reliable estimates of forest attributes in small areas, defined as sub-populations, typically with few observations per area. The enormity of the nation's forests in combination with the resources required to collect plot-level data means that for small-area estimation, typically only a few plot-level observations are available to build estimates. As mentioned above, collecting data at the plot-level is both labor-intensive and expensive and thus prohibits additional data collection. Instead, the FIA employs statistical methods alongside structure in the dataset to improve forest attribute estimation, referred to as Small Area Estimation (SAE). Here, we study SAE techniques to improve forest inventory estimates in the case where the data is zero-inflated. 
+Importantly, these estimates are typically generated for certain areas of interest. For example, at one extreme, the FIA might want to know what the average tree cover is in the state of California. In a setting such as this one, it will be fairly easy to produce accurate estimates because our area of interest is spatially large, in small areas of interest, such as counties, it is much harder.
