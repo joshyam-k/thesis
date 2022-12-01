@@ -29,7 +29,7 @@ We can expand this by writing out the likelihood more fully based on whether $y$
 $$
 \begin{aligned}
 f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)\\
-& =\bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]\bigg[\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg] f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
+& =\bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]\bigg[\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg]\\ & \ \ \  \ \ f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
 \end{aligned}
 $$
 
@@ -37,7 +37,7 @@ We then can group these terms based on the parameters that they use
 
 $$
 \begin{aligned}
-&= \bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]f(\gamma_1)f(\gamma_0)\bigg[\prod_{i:y_i > 0}\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg]f(\beta_1)f(\beta_0)f(\sigma^2) 
+&= \bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]f(\gamma_1)f(\gamma_0)\bigg[\prod_{i:y_i > 0}\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg] \\ & \ \ \ \ \ \ f(\beta_1)f(\beta_0)f(\sigma^2) 
 \end{aligned}
 $$
 
