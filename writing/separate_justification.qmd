@@ -1,0 +1,55 @@
+---
+title: "separate build"
+format: pdf
+editor: visual
+---
+
+Consider the simple two-part model where we model our response as
+
+$$
+\begin{aligned}
+p_i &= \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}} \\
+y^*_i &= x_i\beta_1 + \beta_0 + \epsilon_i \qquad \text{where} \qquad \epsilon_i \sim \mathcal{N}(0, \sigma^2) \\
+y_i &= p_i\cdot y^*_i
+\end{aligned}
+$$
+
+Under a Bayesian frame we could define a full posterior for all model parameters as
+
+$$
+\begin{aligned}
+f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto f(y \ | \ \beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
+&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2  \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
+&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y)f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
+\end{aligned}
+$$
+
+We can expand this by writing out the likelihood more fully based on whether $y$ is zero or not:
+
+$$
+\begin{aligned}
+f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)\\
+& =\bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]\bigg[\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg] f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
+\end{aligned}
+$$
+
+We then can group these terms based on the parameters that they use
+
+$$
+\begin{aligned}
+&= \bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]f(\gamma_1)f(\gamma_0)\bigg[\prod_{i:y_i > 0}\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg]f(\beta_1)f(\beta_0)f(\sigma^2) 
+\end{aligned}
+$$
+
+but now, if we look at this closely we can see that what we really have here is a full separation of the likelihoods for the individual models
+
+$$
+\begin{aligned}
+f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto \Big[L(\gamma_1, \gamma_0 \ | \ y)f(\gamma_1)f(\gamma_0)\Big]\cdot\Big[L(\beta_1,\beta_0, \sigma \ | \ y)f(\beta_1)f(\beta_0)f(\sigma^2)\Big] \\
+&= \Big[f(y \ |\ \gamma_1, \gamma_0)f(\gamma_1, \gamma_0)\Big]\cdot \Big[f(y \ | \ \beta_1,\beta_0, \sigma^2)f(\beta_1,\beta_0,\sigma^2)\Big] \\
+&= \Big[f(\gamma_1, \gamma_0 \ | \ y)f(y)\Big]\Big[f(\beta_1, \beta_0, \sigma^2 \ | \ y)f(y)\Big] \\
+& \propto f(\gamma_1, \gamma_0 \ | \ y)f(\beta_1, \beta_0, \sigma^2 \ | \ y)
+\end{aligned}
+$$
+
+So we've just shown that the full posterior for the model built simultaneously is proportional to the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
