@@ -80,11 +80,12 @@ $$
 \end{bmatrix}
 ,
 \begin{bmatrix}
-\hat{p}^{(1)} \sim bernoullilogit(\gamma_1^{(1)}\cdot x_{new} + \gamma_0^{(1)}) \\
+\hat{p}^{(1)} \sim Bern\bigg(\frac{1}{1 + e^{-(\gamma_1^{(1)}\cdot x_{new} + \gamma_0^{(1)})}}\bigg) \\
 \vdots \\
-\hat{p}^{(2000)} \sim bernoullilogit(\gamma_1^{(2000)}\cdot x_{new} + \gamma_0^{(2000)})
+\hat{p}^{(2000)} \sim Bern\bigg(\frac{1}{1 + e^{-(\gamma_1^{(2000)}\cdot x_{new} + \gamma_0^{(2000)})}}\bigg)
 \end{bmatrix}
 $$
+
 
 And $(\hat{y}^{*(1)}, ..., \hat{y}^{*(20000)})$ would be our posterior predictive distribution under our model for $y^*$, while $(\hat{p}^{(1)}, ..., \hat{p}^{(20000)})$ would be our posterior predictive distribution under our model for $p$.
 
