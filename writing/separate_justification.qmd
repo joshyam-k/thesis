@@ -29,7 +29,7 @@ $$
 
 Importantly, in this formulation we are assuming that the parameters from the model for $z_i$ and the parameters from the model for $y^*_i$ have priors that are independent.
 
-## separate fit
+## Separate Fit
 
 Now we might start out by fitting the models separately since this makes for an easier problem. Note, we use $f(\theta)$ to denote a probability distribution, and $L(\theta | y)$ to denote a likelihood function.
 
@@ -91,7 +91,7 @@ And $(\hat{y}^{*(1)}, ..., \hat{y}^{*(20000)})$ would be our posterior predictiv
 
 But remember that our response in this modeling schema is the product of the outputs from these two models. And so we want a the posterior predictive distribution of $y_{new} = \hat{y}^*\hat{p}$, but it's unclear how we should combine the predictive distributions from the individual models to get here. We might just match MCMC iteration i from each model together, but what makes this matching more correct than shuffling the iterations and then matching them up? To understand what to do about this, we'll dive into some theory behind building the models simultaneously.
 
-## simultaneous fit
+## Simultaneous Fit
 
 To get around our problem of how we combine the MCMC iterations for the models built separately, we could fit the models simultaneously. In this setting our posterior would be:
 
@@ -128,6 +128,8 @@ f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y)  &\propto f(\gamma_1, \
 $$
 
 So we've just shown that the full posterior for the model built simultaneously is proportional to the product of the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
+
+## Practical Backing
 
 And indeed, when we fit the models simultaneously and also fit them separately making use of MCMC to generate samples from their posteriors, we find that they are nearly identical
 
@@ -236,5 +238,8 @@ full_comp %>%
   ) +
   theme_minimal()
 ```
+
+
+## Upshot
 
 The major upshot here is that as long as we don't build in any correlations between the parameters in the two models, then we can build each model as complex as we might desire without having to worry about how we will eventually build the two models together. As we learned above, we can simply build them separately and combine the results at the end.
