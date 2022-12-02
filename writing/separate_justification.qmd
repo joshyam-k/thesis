@@ -87,7 +87,7 @@ $$
 $$
 
 
-And $(\hat{y}^{*(1)}, ..., \hat{y}^{*(20000)})$ would be our posterior predictive distribution under our model for $y^*$, while $(\hat{p}^{(1)}, ..., \hat{p}^{(20000)})$ would be our posterior predictive distribution under our model for $p$.
+And $(\hat{y}^{*(1)}, ..., \hat{y}^{*(2000)})$ would be our posterior predictive distribution under our model for $y^*$, while $(\hat{p}^{(1)}, ..., \hat{p}^{(2000)})$ would be our posterior predictive distribution under our model for $p$.
 
 But remember that our response in this modeling schema is the product of the outputs from these two models. And so we want a the posterior predictive distribution of $y_{new} = \hat{y}^*\hat{p}$, but it's unclear how we should combine the predictive distributions from the individual models to get here. We might just match MCMC iteration i from each model together, but what makes this matching more correct than shuffling the iterations and then matching them up? To understand what to do about this, we'll dive into some theory behind building the models simultaneously.
 
@@ -109,7 +109,8 @@ $$
 \begin{aligned}
 f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)\\
 \end{aligned}
-$$ While it wasn't too difficult to write this out up to a proportionality constant, in practice it can be very difficult to figure out how to combine the two models in such a way that the MCMC algorithm still converges once you start using models that are more complicated than these very simple example ones.
+$$ 
+While it wasn't too difficult to write this out up to a proportionality constant, in practice it can be very difficult to figure out how to combine the two models in such a way that the MCMC algorithm still converges once you start using models that are more complicated than these very simple example ones.
 
 But, there's important insight still to be found here. Let's group these terms based on the parameters that they use. In particular we'll group by which individual model the parameter belongs to:
 
