@@ -62,7 +62,7 @@ $$
   \beta_1^{(1)} & \beta_0^{(1)} & (\sigma^2)^{(1)} \\
   \vdots & \vdots & \vdots \\
   \beta_1^{(2000)} & \beta_0^{(2000)} & (\sigma^2)^{(2000)}
-\end{bmatrix} ,
+\end{bmatrix} \qquad \text{and} \qquad 
 \begin{bmatrix}
   \gamma_1^{(1)} & \gamma_0^{(1)}  \\
   \vdots & \vdots  \\
@@ -74,22 +74,23 @@ and to get a posterior predictive distribution for a new data point we would tak
 
 $$
 \begin{bmatrix}
-\hat{y}^{*(1)} \sim \mathcal{N}(\beta_1^{(1)}\cdot x_{new} + \beta_0^{(1)}, (\sigma^2)^{(1)}) \\
+y_{new}^{*(1)} \sim \mathcal{N}(\beta_1^{(1)}\cdot x_{new} + \beta_0^{(1)}, (\sigma^2)^{(1)}) \\
 \vdots \\
-\hat{y}^{*(2000)} \sim \mathcal{N}(\beta_1^{(2000)}\cdot x_{new} + \beta_0^{(2000)}, (\sigma^2)^{(2000)})
+\vdots \\
+y_{new}^{*(2000)} \sim \mathcal{N}(\beta_1^{(2000)}\cdot x_{new} + \beta_0^{(2000)}, (\sigma^2)^{(2000)})
 \end{bmatrix}
-,
+\qquad \text{and} \qquad
 \begin{bmatrix}
-\hat{p}^{(1)} \sim Bern\bigg(\frac{1}{1 + e^{-(\gamma_1^{(1)}\cdot x_{new} + \gamma_0^{(1)})}}\bigg) \\
+p_{new}^{(1)} \sim Bern\bigg(\frac{1}{1 + e^{-(\gamma_1^{(1)}\cdot x_{new} + \gamma_0^{(1)})}}\bigg) \\
 \vdots \\
-\hat{p}^{(2000)} \sim Bern\bigg(\frac{1}{1 + e^{-(\gamma_1^{(2000)}\cdot x_{new} + \gamma_0^{(2000)})}}\bigg)
+\vdots \\
+p_{new}^{(2000)} \sim Bern\bigg(\frac{1}{1 + e^{-(\gamma_1^{(2000)}\cdot x_{new} + \gamma_0^{(2000)})}}\bigg)
 \end{bmatrix}
 $$
 
+And $(y_{new}^{*(1)}, ..., y_{new}^{*(2000)})$ would be our posterior predictive distribution under our model for $y^*$, while $(p_{new}^{(1)}, ..., p_{new}^{(2000)})$ would be our posterior predictive distribution under our model for $p$.
 
-And $(\hat{y}^{*(1)}, ..., \hat{y}^{*(2000)})$ would be our posterior predictive distribution under our model for $y^*$, while $(\hat{p}^{(1)}, ..., \hat{p}^{(2000)})$ would be our posterior predictive distribution under our model for $p$.
-
-But remember that our response in this modeling schema is the product of the outputs from these two models. And so we want a the posterior predictive distribution of $y_{new} = \hat{y}^*\hat{p}$, but it's unclear how we should combine the predictive distributions from the individual models to get here. We might just match MCMC iteration i from each model together, but what makes this matching more correct than shuffling the iterations and then matching them up? To understand what to do about this, we'll dive into some theory behind building the models simultaneously.
+But remember that our response in this modeling schema is the product of the outputs from these two models. And so we want a the posterior predictive distribution of $y_{new} = y_{new}^*p_{new}$, but it's unclear how we should combine the predictive distributions from the individual models to get here. We might just match MCMC iteration i from each model together, but what makes this matching more correct than shuffling the iterations and then matching them up? To understand what to do about this, we'll dive into some theory behind building the models simultaneously.
 
 ## Simultaneous Fit
 
@@ -109,7 +110,8 @@ $$
 \begin{aligned}
 f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)\\
 \end{aligned}
-$$ 
+$$
+
 While it wasn't too difficult to write this out up to a proportionality constant, in practice it can be very difficult to figure out how to combine the two models in such a way that the MCMC algorithm still converges once you start using models that are more complicated than these very simple example ones.
 
 But, there's important insight still to be found here. Let's group these terms based on the parameters that they use. In particular we'll group by which individual model the parameter belongs to:
@@ -119,6 +121,8 @@ $$
 &= \Bigg[\Big(\prod_{i:y_i = 0}(1- p_i)\prod_{i: y_i > 0}p_i\Big)f(\gamma_1,\gamma_0)\Bigg]\Bigg[\Big(\prod_{i:y_i > 0}f(y_i \ | \ \beta_1, \beta_0, \sigma^2)\Big)f(\beta_1,\beta_0,\sigma^2)\Bigg]
 \end{aligned}
 $$
+
+We are able to split the joint prior in this way because we are assuming that there is no dependence in the priors *between* models.
 
 But now, if we look at this closely we can see that what we really have here is a full separation of the posteriors for the individual models for $p$ and $y^*$ as seen in our derivation in the \*\*separate fit\* section. This means that we can write:
 
@@ -229,7 +233,7 @@ full_comp <- rbind(simul, sep) %>%
   pivot_longer(cols = beta_1:gamma_2, names_to = "param", values_to = "value")
 ```
 
-```{r}
+```{r, echo=F}
 full_comp %>% 
   ggplot(aes(x = value, fill = model)) +
   geom_density(alpha = 0.5, color = NA) +
@@ -239,7 +243,6 @@ full_comp %>%
   ) +
   theme_minimal()
 ```
-
 
 ## Upshot
 
