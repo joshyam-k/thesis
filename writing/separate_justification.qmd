@@ -18,7 +18,7 @@ Under a Bayesian frame we could define a full posterior for all model parameters
 
 $$
 \begin{aligned}
-f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto f(y \ | \ \beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
+f(\beta_1,\beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto f(y \ | \ \beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
 &= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2  \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
 &= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y)f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
 \end{aligned}
@@ -29,7 +29,6 @@ We can expand this by writing out the likelihood more fully based on whether $y$
 $$
 \begin{aligned}
 f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)\\
-& =\bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]\bigg[\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg]\\ & \ \ \  \ \ f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
 \end{aligned}
 $$
 
@@ -37,11 +36,11 @@ We then can group these terms based on the parameters that they use
 
 $$
 \begin{aligned}
-&= \bigg[\prod_{i: y_i = 0}\bigg(1 - \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\prod_{i:y_i > 0}\bigg(\frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}}\bigg)\bigg]f(\gamma_1)f(\gamma_0)\bigg[\prod_{i:y_i > 0}\frac{1}{\sqrt{2\pi\sigma}}e^{-\frac{(y_i - (x_i\beta_1 + \beta_0))^2}{2\sigma^2}}\bigg] \\ & \ \ \ \ \ \ f(\beta_1)f(\beta_0)f(\sigma^2) 
+&= \Bigg[\Big(\prod_{i:y_i = 0}(1- p_i)\prod_{i: y_i > 0}p_i\Big)f(\gamma_1)f(\gamma_0)\Bigg]\Bigg[\Big(\prod_{i:y_i > 0}f(y_i \ | \ \beta_1, \beta_0, \sigma^2)\Big)f(\beta_1)f(\beta_0)f(\sigma^2)\Bigg]
 \end{aligned}
 $$
 
-but now, if we look at this closely we can see that what we really have here is a full separation of the likelihoods for the individual models
+But now, if we look at this closely we can see that what we really have here is a full separation of the likelihoods for the individual models for $p_i$ and $y^*_i$. 
 
 $$
 \begin{aligned}
@@ -53,3 +52,111 @@ f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto \Big[L(\gamma_
 $$
 
 So we've just shown that the full posterior for the model built simultaneously is proportional to the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
+
+And indeed, when we fit the models simultaneously and also fit them separately making use of MCMC to generate samples from their posteriors, we find that they are nearly identical
+
+```{r, warning=F, message=F, include = F}
+#| cache: true
+library(rstan)
+library(tidyverse)
+library(here)
+library(janitor)
+options(mc.cores = parallel::detectCores())
+
+dat_raw <- read_rds(here("data", "wa_plots_public.rds"))
+
+# for now need to remove counties with all zero
+dat_raw <- dat_raw %>% 
+  select(tcc, tnt, DRYBIO_AG_TPA_live_ADJ, COUNTYCD) %>% 
+  group_by(COUNTYCD) %>% 
+  filter(!all(DRYBIO_AG_TPA_live_ADJ == 0)) %>%
+  ungroup() 
+
+# downsize
+counties_subset <- sample(x = unique(dat_raw$COUNTYCD), size = 10)
+
+dat_full <- dat_raw %>% 
+  filter(COUNTYCD %in% counties_subset) %>% 
+  group_by(COUNTYCD) %>% 
+  mutate(group_id = cur_group_id()) %>% 
+  ungroup()
+
+dat_nz <- dat_full %>% 
+  filter(DRYBIO_AG_TPA_live_ADJ > 0)
+
+stan_list_mod1 <- list(
+  n = nrow(dat_nz),
+  p = 1,
+  x = model.matrix(~ tcc, dat_nz),
+  y = dat_nz$DRYBIO_AG_TPA_live_ADJ
+)
+
+stan_list_mod2 <- list(
+  n = nrow(dat_full),
+  p = 1,
+  x = model.matrix(~ tcc, dat_full),
+  z = as.integer(as.logical(dat_full$DRYBIO_AG_TPA_live_ADJ))
+)
+
+
+fit_normal <- stan(file = here("R", "sep_y_ex.stan"),
+                  data = stan_list_mod1,
+                  cores = parallel::detectCores(),
+                  iter = 10000,
+                  chains = 4)
+
+
+fit_p_mod <- stan(file = here("R", "sep_p_ex.stan"),
+                  data = stan_list_mod2,
+                  cores = parallel::detectCores(),
+                  iter = 10000,
+                  chains = 4)
+
+stan_simultaneous <- list(
+  n = nrow(dat_full),
+  p = 1,
+  y = dat_full$DRYBIO_AG_TPA_live_ADJ,
+  x = model.matrix(~ tcc, dat_full),
+  z = as.integer(as.logical(dat_full$DRYBIO_AG_TPA_live_ADJ)),
+  tau_2 = 0.00001
+)
+
+fit_simultaneous <- stan(file = here("R", "simul_ex.stan"),
+            data = stan_simultaneous,
+            cores = parallel::detectCores(),
+            iter = 10000,
+            chains = 4)
+
+simul <- as.data.frame(fit_simultaneous) %>% 
+  clean_names() %>% 
+  select(-c(tau_1, lp)) %>% 
+  mutate(model = "simultaneous")
+
+y <- as.data.frame(fit_normal) %>% 
+  clean_names() %>% 
+  select(-c(sigma_e, lp))
+
+p <- as.data.frame(fit_p_mod) %>% 
+  clean_names() %>% 
+  select(-lp) %>% 
+  mutate(model = "separate")
+
+sep <- cbind(y, p)
+
+full_comp <- rbind(simul, sep) %>% 
+  pivot_longer(cols = beta_1:gamma_2, names_to = "param", values_to = "value")
+```
+
+```{r}
+full_comp %>% 
+  ggplot(aes(x = value, fill = model)) +
+  geom_density(alpha = 0.5, color = NA) +
+  facet_wrap(~param, scales = "free") +
+  labs(
+    title = "Simultaneous vs Separate Bayesian model builds"
+  ) +
+  theme_minimal()
+```
+
+
+The major upshot here is that as long as we don't build in any correlations between the parameters in the two models, then we can build each model as complex as we might desire without having to worry about how we will eventually build the two models together. As we learned above, we can simply build them separately and combine the results at the end.

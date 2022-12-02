@@ -108,7 +108,6 @@ full_comp %>%
     title = "Simultaneous vs Separate Bayesian model builds"
   )
 
-
 # compare correlation of betas and gammas for both models
 
 wide <- full_comp %>% 
