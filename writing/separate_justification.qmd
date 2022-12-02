@@ -4,23 +4,101 @@ format: pdf
 editor: visual
 ---
 
-Consider the simple two-part model where we model our response as
+## Set-Up
+
+Consider the simple two-part model where we model our response $y = (y_1, y_2, ..., y_n)$ as
 
 $$
 \begin{aligned}
-p_i &= \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}} \\
-y^*_i &= x_i\beta_1 + \beta_0 + \epsilon_i \qquad \text{where} \qquad \epsilon_i \sim \mathcal{N}(0, \sigma^2) \\
-y_i &= p_i\cdot y^*_i
+z_i &= \begin{cases}
+        1 & y_i > 0 \\
+        0 & y_i = 0
+      \end{cases} \\
+y^*_{i} &= x_{i, nz}\beta_1 + \beta_0 + \epsilon_i \qquad \text{where} \qquad \epsilon_i \sim \mathcal{N}(0, \sigma^2) \\
+y_i &= z_i\cdot y^*_i
 \end{aligned}
 $$
 
-Under a Bayesian frame we could define a full posterior for all model parameters as
+The subscript $(nz)$ on our covariate for the $y^*_i$ model represents the fact that that model is fit on only the data where the response is *non-zero*.
+
+We model $z_i$ on the full dataset as
+
+$$
+p_i = P(z_i = 1) = \frac{1}{1 + e^{-(x_i\gamma_1 + \gamma_0)}} 
+$$
+
+Importantly, in this formulation we are assuming that the parameters from the model for $z_i$ and the parameters from the model for $y^*_i$ have priors that are independent.
+
+## separate fit
+
+Now we might start out by fitting the models separately since this makes for an easier problem. Note, we use $f(\theta)$ to denote a probability distribution, and $L(\theta | y)$ to denote a likelihood function.
+
+Under a bayesian frame we set up our posterior for each model as being proportional to the product of the likelihood and the joint priors.
+
+In our model for $y^*_i$ we have:
+
+$$ 
+\begin{aligned}
+f(\beta_1, \beta_0, \sigma^2 \ | \ y) &\propto f(y \ | \beta_1, \beta_0, \sigma^2)f(\beta_1, \beta_0, \sigma^2) \\
+&= L(\beta_1, \beta_0, \sigma^2 \ | \ y)f(\beta_1, \beta_0, \sigma^2) \\
+&= \bigg[\prod_{i: y_i > 0} f(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1, \beta_0, \sigma^2)
+\end{aligned} 
+$$
+
+In our model for $z_i$ we have:
+
+$$
+\begin{aligned}
+f(\gamma_1, \gamma_0 \ | \ y) &\propto f(y \ | \ \gamma_1, \gamma_0)f(\gamma_1, \gamma_0) \\
+&= L(\gamma_1, \gamma_0 \ | \ y)f(\gamma_1, \gamma_0) \\
+&= \bigg[\prod_{i: y_i = 0}(1 - p_i)\prod_{i: y_i >0}p_i\bigg]f(\gamma_1, \gamma_0)
+\end{aligned}
+$$
+
+Because the proportionality constant is often too convoluted to derive exactly, we can use MCMC to simulate draws from each of these posteriors. Up until this point everything is fine, but when we want to actually build posterior predictive distributions we run into a problem. At this point we might have 2,000 MCMC parameter iterations for each posterior which look like this
+
+$$
+\begin{bmatrix}
+  \beta_1^{(1)} & \beta_0^{(1)} & (\sigma^2)^{(1)} \\
+  \vdots & \vdots & \vdots \\
+  \beta_1^{(2000)} & \beta_0^{(2000)} & (\sigma^2)^{(2000)}
+\end{bmatrix} ,
+\begin{bmatrix}
+  \gamma_1^{(1)} & \gamma_0^{(1)}  \\
+  \vdots & \vdots  \\
+  \gamma_1^{(2000)} & \gamma_0^{(2000)} 
+\end{bmatrix}
+$$
+
+and to get a posterior predictive distribution for a new data point we would take
+
+$$
+\begin{bmatrix}
+\hat{y}^{*(1)} \sim \mathcal{N}(\beta_1^{(1)}\cdot x_{new} + \beta_0^{(1)}, (\sigma^2)^{(1)}) \\
+\vdots \\
+\hat{y}^{*(2000)} \sim \mathcal{N}(\beta_1^{(2000)}\cdot x_{new} + \beta_0^{(2000)}, (\sigma^2)^{(2000)})
+\end{bmatrix}
+,
+\begin{bmatrix}
+\hat{p}^{(1)} \sim bernoullilogit(\gamma_1^{(1)}\cdot x_{new} + \gamma_0^{(1)}) \\
+\vdots \\
+\hat{p}^{(2000)} \sim bernoullilogit(\gamma_1^{(2000)}\cdot x_{new} + \gamma_0^{(2000)})
+\end{bmatrix}
+$$
+
+And $(\hat{y}^{*(1)}, ..., \hat{y}^{*(20000)})$ would be our posterior predictive distribution under our model for $y^*$, while $(\hat{p}^{(1)}, ..., \hat{p}^{(20000)})$ would be our posterior predictive distribution under our model for $p$.
+
+But remember that our response in this modeling schema is the product of the outputs from these two models. And so we want a the posterior predictive distribution of $y_{new} = \hat{y}^*\hat{p}$, but it's unclear how we should combine the predictive distributions from the individual models to get here. We might just match MCMC iteration i from each model together, but what makes this matching more correct than shuffling the iterations and then matching them up? To understand what to do about this, we'll dive into some theory behind building the models simultaneously.
+
+## simultaneous fit
+
+To get around our problem of how we combine the MCMC iterations for the models built separately, we could fit the models simultaneously. In this setting our posterior would be:
 
 $$
 \begin{aligned}
 f(\beta_1,\beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto f(y \ | \ \beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
 &= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2  \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
-&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y)f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)
+&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)
 \end{aligned}
 $$
 
@@ -28,40 +106,40 @@ We can expand this by writing out the likelihood more fully based on whether $y$
 
 $$
 \begin{aligned}
-f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1)f(\beta_0)f(\gamma_1)f(\gamma_0)f(\sigma^2)\\
+f(\beta_1,\beta_0 \gamma_1, \gamma_0, \sigma^2 \ | \ y) & \propto \bigg[\prod_{i:y_i = 0}(1-p_i)\prod_{i:y_i > 0}p_if(y_i \ | \ \beta_1, \beta_0, \sigma^2)\bigg]f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)\\
 \end{aligned}
-$$
+$$ While it wasn't too difficult to write this out up to a proportionality constant, in practice it can be very difficult to figure out how to combine the two models in such a way that the MCMC algorithm still converges once you start using models that are more complicated than these very simple example ones.
 
-We then can group these terms based on the parameters that they use
+But, there's important insight still to be found here. Let's group these terms based on the parameters that they use. In particular we'll group by which individual model the parameter belongs to:
 
 $$
 \begin{aligned}
-&= \Bigg[\Big(\prod_{i:y_i = 0}(1- p_i)\prod_{i: y_i > 0}p_i\Big)f(\gamma_1)f(\gamma_0)\Bigg]\Bigg[\Big(\prod_{i:y_i > 0}f(y_i \ | \ \beta_1, \beta_0, \sigma^2)\Big)f(\beta_1)f(\beta_0)f(\sigma^2)\Bigg]
+&= \Bigg[\Big(\prod_{i:y_i = 0}(1- p_i)\prod_{i: y_i > 0}p_i\Big)f(\gamma_1,\gamma_0)\Bigg]\Bigg[\Big(\prod_{i:y_i > 0}f(y_i \ | \ \beta_1, \beta_0, \sigma^2)\Big)f(\beta_1,\beta_0,\sigma^2)\Bigg]
 \end{aligned}
 $$
 
-But now, if we look at this closely we can see that what we really have here is a full separation of the likelihoods for the individual models for $p_i$ and $y^*_i$. 
+But now, if we look at this closely we can see that what we really have here is a full separation of the posteriors for the individual models for $p$ and $y^*$ as seen in our derivation in the \*\*separate fit\* section. This means that we can write:
 
 $$
 \begin{aligned}
-f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto \Big[L(\gamma_1, \gamma_0 \ | \ y)f(\gamma_1)f(\gamma_0)\Big]\cdot\Big[L(\beta_1,\beta_0, \sigma \ | \ y)f(\beta_1)f(\beta_0)f(\sigma^2)\Big] \\
-&= \Big[f(y \ |\ \gamma_1, \gamma_0)f(\gamma_1, \gamma_0)\Big]\cdot \Big[f(y \ | \ \beta_1,\beta_0, \sigma^2)f(\beta_1,\beta_0,\sigma^2)\Big] \\
-&= \Big[f(\gamma_1, \gamma_0 \ | \ y)f(y)\Big]\Big[f(\beta_1, \beta_0, \sigma^2 \ | \ y)f(y)\Big] \\
-& \propto f(\gamma_1, \gamma_0 \ | \ y)f(\beta_1, \beta_0, \sigma^2 \ | \ y)
+f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y)  &\propto f(\gamma_1, \gamma_0 \ | \ y)f(\beta_1, \beta_0, \sigma^2 \ | \ y)
 \end{aligned}
 $$
 
-So we've just shown that the full posterior for the model built simultaneously is proportional to the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
+So we've just shown that the full posterior for the model built simultaneously is proportional to the product of the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
 
 And indeed, when we fit the models simultaneously and also fit them separately making use of MCMC to generate samples from their posteriors, we find that they are nearly identical
 
-```{r, warning=F, message=F, include = F}
-#| cache: true
+```{r, include = F}
 library(rstan)
 library(tidyverse)
 library(here)
 library(janitor)
 options(mc.cores = parallel::detectCores())
+```
+
+```{r, warning=F, message=F, include = F}
+#| cache: true
 
 dat_raw <- read_rds(here("data", "wa_plots_public.rds"))
 
@@ -157,6 +235,5 @@ full_comp %>%
   ) +
   theme_minimal()
 ```
-
 
 The major upshot here is that as long as we don't build in any correlations between the parameters in the two models, then we can build each model as complex as we might desire without having to worry about how we will eventually build the two models together. As we learned above, we can simply build them separately and combine the results at the end.
