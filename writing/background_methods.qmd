@@ -12,7 +12,7 @@ editor: visual
 
 #### Zero-Inflation
 
-First some housekeeping. As the name suggests, data are canonically classified as being zero-inflated when they contain a significant proportion of zeroes. While it's hardly ever very productive to spell out a definition for a phrase that is it's own definition, we do so here to emphasize the fact that to call data zero-inflated is to only say something very broad about how that data is distributed. There is no commonly accepted cutoff for at what proportion of zeroes our data deserves the label zero-inflation, and there is no restriction on the distribution of the non-zero data. While the work done in this thesis concerns zero-inflated data with no constraint on the level of "zeroeness", we do require that the non-zero data is positive and continuously distributed. For example our response variables might look like this:
+First some housekeeping. As the name suggests, data are canonically classified as being zero-inflated when they contain a significant proportion of zeroes. While it's hardly ever very productive to spell out a definition for a phrase that is it's own definition, I do so here to emphasize the fact that to call data zero-inflated is to only say something very broad about how that data is distributed. There is no commonly accepted cutoff for at what proportion of zeros our data deserves the label zero-inflation, and there is no restriction on the distribution of the non-zero data. While the work done in this thesis concerns zero-inflated data with no constraint on the level of "zeroness", I do require that the non-zero data is positive and continuously distributed. Importantly, as I am working in a modeling setting, **when I say our data is zero-inflated I mean that our response variable is zero-inflated**. For example, the response variable might look like this:
 
 ```{r, echo=F, message=F, warning=F}
 set.seed(103)
@@ -27,21 +27,31 @@ nz <- tibble(
 )
 
 ggplot() +
-  geom_density(data = nz, aes(x = nz, y = ..count..), fill = "midnightblue", color = "white", alpha = 0.8) +
-  geom_histogram(data = z, aes(x = z), fill = "midnightblue", color = "white", alpha = 0.8) +
+  geom_histogram(
+    data = z,
+    aes(x = z),
+    fill = "midnightblue",
+    color = "white",
+    alpha = 0.8
+    ) +
+  geom_density(
+    data = nz,
+    aes(x = nz, y = ..count..),
+    fill = "midnightblue",
+    color = "white",
+    alpha = 0.8
+    ) +
   labs(
     x = "Response Variable"
   ) +
   theme_bw()
-
-
 ```
 
-Although for the duration of this thesis we will simply refer to our data as being zero-inflated and our models as being suited for zero-inflated data, this is simply a matter of convenience and not a statement that our methods work for any situation in which data can be considered zero-inflated.
+Although for the duration of this thesis I will simply refer to our data as being zero-inflated and our models as being suited for zero-inflated data, this is simply a matter of convenience and not a statement that the methods work for any situation in which data can be considered zero-inflated.
 
 #### Modeling struggles
 
-To motivate our methods we'll first show what happens when we try to just fit a simple linear regression to this type of data.
+To motivate these methods, I'll first show what happens when I try to just fit a simple linear regression to this type of data.
 
 ```{r}
 DGP_s1 <- function(n) {
@@ -65,14 +75,17 @@ data <- DGP_s1(1000)
 data %>% 
   ggplot(aes(x = X, y = Y)) + 
   geom_point(size = 3, color = "grey20", alpha = 0.6) +
-  geom_smooth(method = "lm", se = F, linewidth = 2.5, color = "#BB2649") +
+  stat_smooth(
+    geom = "line", method = "lm",
+    se = F, alpha = 0.75,
+    linewidth = 2.5, color = "#BB2649") +
   theme_bw()
 ```
 
 
-While this model isn't awful it's certainly mis-specified. The zero-inflation in our response variable pulls the regression line down so that it doesn't properly capture the relationship between our explanatory variable and our *non-zero*  response, but more importantly it doesn't capture the structure of zeros in our response at all.
+While this model isn't awful it's certainly missspecified. The zero-inflation in our response variable pulls the regression line down so that it doesn't properly capture the relationship between our explanatory variable and our *non-zero*  response, but more importantly it doesn't capture the structure of zeros in our response at all. Additionally, this model sometimes predicts negative values for our response variable which is positive (usually predictions which are impossible are not a good thing).
 
-We would call this model statistically biased, as it is overly simple and thus doesn't properly capture the structure of the data. 
+We would call this model statistically biased, as it is overly simple and thus doesn't properly capture the structure of the data. As one might imagine the bias of this model will be progressively worse as the level of zero-inflation increases.
 
 ### FIA
 
