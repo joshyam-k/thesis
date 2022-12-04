@@ -124,7 +124,7 @@ $$
 
 We are able to split the joint prior in this way because we are assuming that there is no dependence in the priors *between* models.
 
-But now, if we look at this closely we can see that what we really have here is a full separation of the posteriors for the individual models for $p$ and $y^*$ as seen in our derivation in the \*\*separate fit\* section. This means that we can write:
+But now, if we look at this closely we can see that what we really have here is a full separation into the posteriors for the individual models for $p$ and $y^*$ as seen in our derivation in the **separate fit** section. This means that we can write:
 
 $$
 \begin{aligned}

@@ -14,7 +14,7 @@ editor: visual
 
 First some housekeeping. As the name suggests, data are canonically classified as being zero-inflated when they contain a significant proportion of zeroes. While it's hardly ever very productive to spell out a definition for a phrase that is it's own definition, we do so here to emphasize the fact that to call data zero-inflated is to only say something very broad about how that data is distributed. There is no commonly accepted cutoff for at what proportion of zeroes our data deserves the label zero-inflation, and there is no restriction on the distribution of the non-zero data. While the work done in this thesis concerns zero-inflated data with no constraint on the level of "zeroeness", we do require that the non-zero data is positive and continuously distributed. For example our response variables might look like this:
 
-```{r, include=F, message=F, warning=F}
+```{r, echo=F, message=F, warning=F}
 set.seed(103)
 library(tidyverse)
 
@@ -41,17 +41,17 @@ Although for the duration of this thesis we will simply refer to our data as bei
 
 #### Modeling struggles
 
-To motivate our methods we'll first show what happens when we try to just fit a normal linear model to this type of data. 
+To motivate our methods we'll first show what happens when we try to just fit a simple linear regression to this type of data.
 
 ```{r}
 DGP_s1 <- function(n) {
   
-  X <- rnorm(n, 0, 1)
+  X <- rnorm(n, 0, 1) 
   beta_z <- 1
   xb <- X*beta_z 
   prob <- exp(xb) / (1 + exp(xb)) 
   Z <- 1*(runif(n)<prob)
-  beta_y <- 1
+  beta_y <- 1.5
   ypure <- 5 + X*beta_y 
   Y <- rgamma(n, shape = 4, rate = 1/ypure) 
   Y <- Z*Y 
@@ -64,12 +64,15 @@ data <- DGP_s1(1000)
 
 data %>% 
   ggplot(aes(x = X, y = Y)) + 
-  geom_point() +
-  geom_smooth(method = "lm", se = F)
+  geom_point(size = 3, color = "grey20", alpha = 0.6) +
+  geom_smooth(method = "lm", se = F, linewidth = 2.5, color = "#BB2649") +
+  theme_bw()
 ```
 
 
+While this model isn't awful it's certainly mis-specified. The zero-inflation in our response variable pulls the regression line down so that it doesn't properly capture the relationship between our explanatory variable and our *non-zero*  response, but more importantly it doesn't capture the structure of zeros in our response at all.
 
+We would call this model statistically biased, as it is overly simple and thus doesn't properly capture the structure of the data. 
 
 ### FIA
 
