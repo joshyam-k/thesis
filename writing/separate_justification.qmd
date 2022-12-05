@@ -128,11 +128,22 @@ But now, if we look at this closely we can see that what we really have here is 
 
 $$
 \begin{aligned}
-f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y)  &\propto f(\gamma_1, \gamma_0 \ | \ y)f(\beta_1, \beta_0, \sigma^2 \ | \ y)
+f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y)  &\propto f(\gamma_1, \gamma_0 \ | \ y)f(\beta_1, \beta_0, \sigma^2 \ | \ y) \\
+  &= C\bigg[f(\gamma_1, \gamma_0 \ | \ y)f(\beta_1, \beta_0, \sigma^2 \ | \ y)\bigg]
 \end{aligned}
 $$
 
-So we've just shown that the full posterior for the model built simultaneously is proportional to the product of the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
+Finally, since these are all proper probability distributions we know that
+
+$$
+\begin{aligned}
+\int_{-\infty}^{\infty}f(\beta_1, \beta_0,\gamma_1, \gamma_0, \sigma^2 \ | \ y) \ d\beta_1  d\beta_0d\gamma_1d\gamma_0d\sigma^2 &= C \int_{-\infty}^{\infty} f(\gamma_1, \gamma_0 \ | \ y) \ d\gamma_1d\gamma_2 \int_{-\infty}^{\infty} f(\beta_1, \beta_0, \sigma^2 \ | \ y) \ d\beta_1d\beta_0d\sigma^2 \\
+1 &= C \cdot 1 \cdot 1 \\
+1 &= C
+\end{aligned}
+$$
+
+And if $C = 1$ then the full posterior for the model built simultaneously is equal to the product of the posteriors for each model built separately. What this means for us is that we can fit the models separately, and then combine the results at the end to get our posterior predictive distributions.
 
 ## Practical Backing
 
