@@ -99,8 +99,7 @@ To get around our problem of how we combine the MCMC iterations for the models b
 $$
 \begin{aligned}
 f(\beta_1,\beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y) &\propto f(y \ | \ \beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
-&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2  \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) \\
-&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2 \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2)
+&= L(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2  \ | \ y)f(\beta_1, \beta_0, \gamma_1, \gamma_0, \sigma^2) 
 \end{aligned}
 $$
 
@@ -200,14 +199,14 @@ fit_normal <- stan(file = here("R", "sep_y_ex.stan"),
                   data = stan_list_mod1,
                   cores = parallel::detectCores(),
                   iter = 10000,
-                  chains = 4)
+                  chains = 6)
 
 
 fit_p_mod <- stan(file = here("R", "sep_p_ex.stan"),
                   data = stan_list_mod2,
                   cores = parallel::detectCores(),
                   iter = 10000,
-                  chains = 4)
+                  chains = 6)
 
 stan_simultaneous <- list(
   n = nrow(dat_full),
@@ -222,7 +221,7 @@ fit_simultaneous <- stan(file = here("R", "simul_ex.stan"),
             data = stan_simultaneous,
             cores = parallel::detectCores(),
             iter = 10000,
-            chains = 4)
+            chains = 6)
 
 simul <- as.data.frame(fit_simultaneous) %>% 
   clean_names() %>% 
@@ -246,12 +245,17 @@ full_comp <- rbind(simul, sep) %>%
 
 ```{r, echo=F}
 full_comp %>% 
+  mutate(
+    param = case_when(
+      param == "beta_1" ~ "beta_0",
+      param == "beta_2" ~ "beta_1",
+      param == "gamma_1" ~ "gamma_0",
+      param == "gamma_2" ~ "gamma_1"
+    )
+  ) %>% 
   ggplot(aes(x = value, fill = model)) +
   geom_density(alpha = 0.5, color = NA) +
   facet_wrap(~param, scales = "free") +
-  labs(
-    title = "Simultaneous vs Separate Bayesian model builds"
-  ) +
   theme_minimal()
 ```
 
