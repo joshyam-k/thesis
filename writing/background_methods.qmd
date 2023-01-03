@@ -4,10 +4,21 @@ format: html
 editor: visual
 ---
 
-## Structure
+##### Structure
 
 -   zero inflation -\> bayesian vs frequentist -\> FIA data -\> ...
 
+##### colors
+
+```{r}
+"#8ecae6"
+"#219ebc"
+"#023047"
+"#ffb703"
+"#fb8500"
+```
+  
+  
 ### Data Structure
 
 #### Zero-Inflation
@@ -15,7 +26,7 @@ editor: visual
 First some housekeeping. As the name suggests, data are canonically classified as being zero-inflated when they contain a significant proportion of zeroes. While it's hardly ever very productive to spell out a definition for a phrase that is it's own definition, I do so here to emphasize the fact that to call data zero-inflated is to only say something very broad about how that data is distributed. There is no commonly accepted cutoff for at what proportion of zeros our data deserves the label zero-inflation, and there is no restriction on the distribution of the non-zero data. While the work done in this thesis concerns zero-inflated data with no constraint on the level of "zeroness", I do require that the non-zero data is positive and continuously distributed. Importantly, as I am working in a modeling setting, **when I say our data is zero-inflated I mean that our response variable is zero-inflated**. For example, the response variable might look like this:
 
 ```{r, echo=F, message=F, warning=F}
-set.seed(103)
+set.seed(6)
 library(tidyverse)
 
 z <- tibble(
@@ -30,14 +41,14 @@ ggplot() +
   geom_histogram(
     data = z,
     aes(x = z),
-    fill = "midnightblue",
+    fill = "#023047",
     color = "white",
     alpha = 0.8
     ) +
   geom_density(
-    data = nz,
+    data = filter(nz, nz > 0.25),
     aes(x = nz, y = ..count..),
-    fill = "midnightblue",
+    fill = "#023047",
     color = "white",
     alpha = 0.8
     ) +
@@ -51,20 +62,20 @@ Although for the duration of this thesis I will simply refer to my data as being
 
 #### Modeling struggles
 
-To motivate these methods, I'll first show what happens when I try to just fit a simple linear regression to this type of data.
+To motivate using a more complex method, I'll first show what happens when I try to just fit a simple linear regression to this type of data. If we regress our response variable on a useful covariate and plot both the data and the simple linear regression line together we get the following:
 
 ```{r}
 DGP_s1 <- function(n) {
   
   X <- rnorm(n, 0, 1) 
   beta_z <- 1
-  xb <- X*beta_z 
+  xb <- X * beta_z 
   prob <- exp(xb) / (1 + exp(xb)) 
-  Z <- 1*(runif(n)<prob)
+  Z <- 1 * (runif(n) < prob)
   beta_y <- 1.5
-  ypure <- 5 + X*beta_y 
-  Y <- rgamma(n, shape = 4, rate = 1/ypure) 
-  Y <- Z*Y 
+  ypure <- 5 + X * beta_y 
+  Y <- rgamma(n, shape = 4, rate = 1 / ypure) 
+  Y <- Z * Y 
 
   return(tibble(X, Y, Z))
   
@@ -77,8 +88,8 @@ data %>%
   geom_point(size = 3, color = "grey20", alpha = 0.6) +
   stat_smooth(
     geom = "line", method = "lm",
-    se = F, alpha = 0.75,
-    linewidth = 2.5, color = "#BB2649") +
+    se = F, alpha = 0.9,
+    linewidth = 2.5, color = "#219ebc") +
   theme_bw()
 ```
 
