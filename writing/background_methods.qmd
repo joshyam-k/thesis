@@ -47,7 +47,7 @@ ggplot() +
   theme_bw()
 ```
 
-Although for the duration of this thesis I will simply refer to our data as being zero-inflated and our models as being suited for zero-inflated data, this is simply a matter of convenience and not a statement that the methods work for any situation in which data can be considered zero-inflated.
+Although for the duration of this thesis I will simply refer to my data as being zero-inflated and mu models as being suited for zero-inflated data, this is simply a matter of convenience and not a statement that the methods work for any situation in which data can be considered zero-inflated. Put simply, *I explore, present, and evaluate a model that is suited for a response variable which has a significant portion of zeroes, with the rest of the data belonging to a positive continuous distribution.*
 
 #### Modeling struggles
 
@@ -82,10 +82,9 @@ data %>%
   theme_bw()
 ```
 
+While this model isn't awful it's certainly misspecified. The zero-inflation in our response variable pulls the regression line down so that it doesn't properly capture the relationship between our explanatory variable and our *non-zero* response, but more importantly it doesn't capture the structure of zeros in our response at all. Additionally, this model sometimes predicts negative values for our response variable which is positive (usually predictions which are impossible are not a good thing).
 
-While this model isn't awful it's certainly misspecified. The zero-inflation in our response variable pulls the regression line down so that it doesn't properly capture the relationship between our explanatory variable and our *non-zero*  response, but more importantly it doesn't capture the structure of zeros in our response at all. Additionally, this model sometimes predicts negative values for our response variable which is positive (usually predictions which are impossible are not a good thing).
-
-We would call this model statistically biased, as it is overly simple and thus doesn't properly capture the structure of the data. As one might imagine the bias of this model will get progressively worse as the level of zero-inflation increases. 
+We would call this model statistically biased, as it is overly simple and thus doesn't properly capture the structure of the data. As one might imagine the bias of this model will get progressively worse as the level of zero-inflation increases.
 
 (can talk about why transformations dont work here if we need more writing)
 
@@ -98,8 +97,7 @@ $$
     \mathbb{E}[ y  \ | \ R = r] &= \underbrace{\mathbb{E}[y \ | \ R = r, y = 0]}_{= \ 0}\mathbb{P}(y = 0 \ | \ R = r) + \mathbb{E}[y \ | \ R = r, y > 0]\mathbb{P}(y > 0 \ | \ R = r) \\
     &= \mathbb{E}[y \ | \ R = r, y > 0]\mathbb{P}(y > 0 \ | \ R = r) 
 \end{aligned}
-$$
-Out of this equation comes a wonderful intuition for what our zero-inflation models will look like. We end up with a model in which we fit a model to the nonzero portion of the data and then weigh those model outputs by the probability that that point is zero. 
+$$ Out of this equation comes a wonderful intuition for what our zero-inflation models will look like. We end up with a model in which we fit a model to the nonzero portion of the data and then weigh those model outputs by the probability that that point is zero.
 
 ### FIA
 
