@@ -1,0 +1,15 @@
+---
+title: "bayes_vs_freq"
+format: html
+editor: visual
+---
+
+## main foundational difference
+
+A question of philosophy: "What do we mean by probability?"
+
+Frequentist
+- probability is fundamentally related to the frequency of repeated events
+
+Bayesian
+- probability is used as a fundamental measure of uncertainty. The guiding principle is that the state of knowledge about anything unknown is described by a probability distribution
