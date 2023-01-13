@@ -6,10 +6,13 @@ editor: visual
 
 ## main foundational difference
 
-A question of philosophy: "What do we mean by probability?"
 
-Frequentist
-- probability is fundamentally related to the frequency of repeated events
 
-Bayesian
-- probability is used as a fundamental measure of uncertainty. The guiding principle is that the state of knowledge about anything unknown is described by a probability distribution
+What do they mean when they say that they are quantifying uncertainty?
+
+Bayesian statistical conclusions about a parameter $\theta$ are made in terms of probability statements. These probability statements are conditional on the observed value of y, and in our notation are written simply as $p(\theta \ | \ y)$. We also implicitly condition on the known values of any covariates, x. It is at the fundamental level of conditioning on observed data that Bayesian inference departs from the approach to statistical inference described in many textbooks, which is based on a retrospective evaluation of the procedure used to estimate $\theta$ over the distribution of possible y values
+conditional on the true unknown value of $\theta$ - gelman BDA
+
+because of this, a frequentist treats the parameters being estimated as unknown fixed constants, on the other hand, for bayesians, unknown parameters are described probabilistically.
+
+The guiding principle for bayesian statistics is that the state of knowledge about anything unknown is described by a probability distribution.
